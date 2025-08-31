@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Sorter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0d0221;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #f0f0f0;
+        }
+        .container-90s {
+            border: 4px solid #00e5ff;
+            box-shadow: 0 0 15px #ff00c1, 0 0 20px #ff00c1 inset;
+            background-color: #26174a;
+        }
+        .btn-90s {
+            border: 2px solid #f0f0f0;
+            background-color: #4b2a8f;
+            color: #f0f0f0;
+            box-shadow: 4px 4px 0px #0d0221;
+            transition: all 0.1s ease-in-out;
+            image-rendering: pixelated;
+            cursor: pointer;
+        }
+        .btn-90s:hover:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #0d0221;
+        }
+        .btn-90s.selected {
+            background-color: #ff00c1;
+            color: #fff;
+            border-color: #00e5ff;
+            box-shadow: 4px 4px 0px #00e5ff;
+        }
+        .btn-90s:disabled {
+            background-color: #333;
+            color: #777;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        #sort-button {
+            background-color: #00ff85;
+            color: #0d0221;
+            font-weight: bold;
+            border-color: #f0f0f0;
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 4px 4px 0px #0d0221, 0 0 10px #00ff85;
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 4px 4px 0px #0d0221, 0 0 25px #00ff85, 0 0 40px #00ff85;
+                transform: scale(1.05);
+            }
+        }
+        .glitch-text {
+            color: #00e5ff;
+            text-shadow:
+                -1px -1px 0 #ff00c1,
+                1px 1px 0 #00ff85;
+        }
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #0d0221; border: 1px solid #4b2a8f; }
+        ::-webkit-scrollbar-thumb { background: #ff00c1; border: 2px solid #00e5ff; }
+        ::-webkit-scrollbar-thumb:hover { background: #00ff85; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Tela de Seleção de Gênero -->
+    <div id="selection-screen" class="container-90s w-full max-w-2xl p-6 md:p-8 rounded-lg">
+        <h1 class="text-2xl md:text-3xl text-center mb-6 glitch-text">MOVIE SORTER</h1>
+        <div id="status-message" class="text-center text-yellow-300 mb-6">Carregando...</div>
+        <div id="genre-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8"></div>
+        <button id="sort-button" class="btn-90s w-full py-3 text-lg" disabled>CARREGANDO...</button>
+    </div>
+
+    <!-- Tela de Resultado do Filme -->
+    <div id="result-screen" class="hidden container-90s w-full max-w-2xl p-6 md:p-8 rounded-lg">
+        <h2 class="text-2xl text-center mb-6 glitch-text">A SUA SUGESTÃO É...</h2>
+        <div id="movie-result" class="flex flex-col md:flex-row gap-6 items-start md:items-center"></div>
+        <div id="no-result" class="hidden text-center py-8">
+            <p class="text-lg text-yellow-300">Não encontramos um filme com essa combinação.</p>
+            <p class="mt-2 text-sm">Pode ser uma combinação rara! Tente novamente ou com outros gêneros.</p>
+        </div>
+        <button id="back-button" class="btn-90s w-full py-3 mt-8">VOLTAR</button>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÃO ---
+        const IMG_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+        const MAX_RETRIES = 10;
+
+        // --- ELEMENTOS DO DOM ---
+        const selectionScreen = document.getElementById('selection-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const genreGrid = document.getElementById('genre-grid');
+        const sortButton = document.getElementById('sort-button');
+        const backButton = document.getElementById('back-button');
+        const movieResultContainer = document.getElementById('movie-result');
+        const noResultContainer = document.getElementById('no-result');
+        const statusMessage = document.getElementById('status-message');
+
+        // --- ESTADO DA APLICAÇÃO ---
+        let genreMap = new Map();
+        let selectedGenreIds = [];
+        let totalPages = 1;
+
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        async function apiFetch(endpoint, params = {}) {
+            const query = new URLSearchParams(params);
+            const response = await fetch(`/api/tmdb?endpoint=${endpoint}&${query.toString()}`);
+            if (!response.ok) {
+                throw new Error(`Falha na chamada da API para o endpoint: ${endpoint}`);
+            }
+            return response.json();
+        }
+
+        async function initializeApp() {
+            try {
+                const genreData = await apiFetch('/genre/movie/list', { language: 'pt-BR' });
+                genreData.genres.forEach(genre => genreMap.set(genre.id, genre.name));
+
+                const movieData = await apiFetch('/discover/movie');
+                totalPages = Math.min(movieData.total_pages, 500);
+
+                createGenreButtons();
+                statusMessage.textContent = 'Escolha um ou mais gêneros:';
+                sortButton.disabled = false;
+                sortButton.innerText = 'SORT';
+
+            } catch (error) {
+                console.error('Falha ao inicializar a aplicação:', error);
+                statusMessage.innerHTML = 'Não foi possível carregar os dados.<br>Tente recarregar a página.';
+                sortButton.innerText = 'ERRO';
+            }
+        }
+
+        // --- FUNÇÕES DA API (agora chamando nossa função serverless) ---
+        async function fetchWatchProviders(movieId) {
+            try {
+                const data = await apiFetch(`/movie/${movieId}/watch/providers`);
+                return data.results?.BR?.flatrate || [];
+            } catch (error) {
+                console.error('Erro ao buscar provedores de streaming:', error);
+                return [];
+            }
+        }
+
+        async function findMatchingMovie() {
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                const randomPage = Math.floor(Math.random() * totalPages) + 1;
+                const params = {
+                    page: randomPage,
+                    with_genres: selectedGenreIds.join(',')
+                };
+                const data = await apiFetch('/discover/movie', params);
+                const validMovies = data.results.filter(movie => movie.poster_path && movie.overview);
+
+                if (validMovies.length > 0) {
+                    return validMovies[Math.floor(Math.random() * validMovies.length)];
+                }
+            }
+            return null;
+        }
+
+        // --- LÓGICA DA UI ---
+        function createGenreButtons() {
+            genreGrid.innerHTML = '';
+            const sortedGenres = [...genreMap.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+
+            for (const [id, name] of sortedGenres) {
+                const button = document.createElement('button');
+                button.innerText = name;
+                button.classList.add('btn-90s', 'p-2', 'text-xs', 'md:text-sm', 'truncate');
+                button.dataset.genreId = id;
+                button.addEventListener('click', () => toggleGenre(button, id));
+                genreGrid.appendChild(button);
+            }
+        }
+
+        function toggleGenre(button, genreId) {
+            button.classList.toggle('selected');
+            if (selectedGenreIds.includes(genreId)) {
+                selectedGenreIds = selectedGenreIds.filter(id => id !== genreId);
+            } else {
+                selectedGenreIds.push(genreId);
+            }
+        }
+
+        sortButton.addEventListener('click', async () => {
+            if (selectedGenreIds.length === 0) {
+                statusMessage.textContent = 'Por favor, selecione pelo menos um gênero!';
+                return;
+            }
+            statusMessage.textContent = 'Escolha um ou mais gêneros:';
+
+            sortButton.disabled = true;
+            sortButton.innerText = 'PROCURANDO...';
+            
+            try {
+                const movie = await findMatchingMovie();
+                if (movie) {
+                    const providers = await fetchWatchProviders(movie.id);
+                    displayMovie(movie, providers);
+                } else {
+                    displayNoResult();
+                }
+            } catch (error) {
+                console.error("Erro ao sortear filme:", error);
+                displayNoResult();
+            } finally {
+                sortButton.disabled = false;
+                sortButton.innerText = 'SORT';
+            }
+        });
+
+        function displayMovie(movie, providers) {
+            const year = movie.release_date ? movie.release_date.substring(0, 4) : 'N/A';
+            const posterUrl = `${IMG_BASE_URL}${movie.poster_path}`;
+            const genreNames = movie.genre_ids.map(id => genreMap.get(id) || '').filter(Boolean).join(' / ');
+
+            let providersHtml = '';
+            if (providers && providers.length > 0) {
+                providersHtml = `
+                    <div class="mt-4 pt-4 border-t-2 border-dashed border-pink-500">
+                        <h4 class="text-sm font-bold text-gray-300 mb-3">Onde assistir (Streaming):</h4>
+                        <div class="flex flex-wrap gap-3">
+                            ${providers.map(p => `
+                                <img src="${IMG_BASE_URL}${p.logo_path}" 
+                                     alt="${p.provider_name}" 
+                                     title="${p.provider_name}" 
+                                     class="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover border-2 border-gray-400">
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                 providersHtml = `
+                    <div class="mt-4 pt-4 border-t-2 border-dashed border-pink-500">
+                         <p class="text-sm text-gray-400">Não encontramos este filme em serviços de streaming no Brasil.</p>
+                    </div>
+                `;
+            }
+
+            movieResultContainer.innerHTML = `
+                <div class="w-full md:w-1/3 flex-shrink-0">
+                    <img src="${posterUrl}" alt="Pôster de ${movie.title}" class="w-full max-w-xs mx-auto md:max-w-none rounded-md border-2 border-[#f0f0f0] shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/500x750/0d0221/00e5ff?text=Pôster+Indisponível';">
+                </div>
+                <div class="w-full md:w-2/3">
+                    <h3 class="text-xl md:text-2xl font-bold text-yellow-300">${movie.title} (${year})</h3>
+                    <p class="text-xs mt-2 mb-4 text-gray-400">${genreNames}</p>
+                    <p class="text-sm md:text-base">${movie.overview}</p>
+                    ${providersHtml}
+                </div>
+            `;
+            movieResultContainer.classList.remove('hidden');
+            noResultContainer.classList.add('hidden');
+            showScreen('result');
+        }
+
+        function displayNoResult() {
+            movieResultContainer.classList.add('hidden');
+            noResultContainer.classList.remove('hidden');
+            showScreen('result');
+        }
+
+        backButton.addEventListener('click', () => {
+            selectedGenreIds = [];
+            document.querySelectorAll('#genre-grid .btn-90s').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            showScreen('selection');
+        });
+
+        function showScreen(screenName) {
+            selectionScreen.classList.toggle('hidden', screenName !== 'selection');
+            resultScreen.classList.toggle('hidden', screenName !== 'result');
+        }
+    </script>
+</body>
+</html>
