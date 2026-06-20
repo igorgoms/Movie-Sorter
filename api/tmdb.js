@@ -11,30 +11,30 @@ export default async function handler(request, response) {
         return response.status(500).json({ error: 'A chave da API do TMDB não está configurada no servidor.' });
     }
 
-    // 2. Extrai o endpoint e outros parâmetros da URL da requisição do frontend.
+    // 2. Extrai o endpoint e outros parâmetros diretamente de request.query (Padrão Vercel/Express)
     // Ex: /api/tmdb?endpoint=/discover/movie&page=2&with_genres=28
-    const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
-    const endpoint = searchParams.get('endpoint');
-    searchParams.delete('endpoint'); // Remove para não enviar à API do TMDB
+    const queryParams = { ...request.query };
+    const endpoint = queryParams.endpoint;
+    
+    // Remove o endpoint para não enviá-lo como parâmetro de query para a API do TMDB
+    delete queryParams.endpoint; 
 
     if (!endpoint) {
         return response.status(400).json({ error: 'O endpoint da API é obrigatório.' });
     }
 
-    // 3. Define os parâmetros padrão e adiciona os que vieram do frontend.
-    const defaultParams = {
+    // 3. Define os parâmetros padrão e mescla com os que vieram do frontend
+    const allParams = new URLSearchParams({
         api_key: apiKey,
         language: 'pt-BR',
         include_adult: 'false',
-    };
-
-    const allParams = new URLSearchParams(defaultParams);
-    searchParams.forEach((value, key) => {
-        allParams.append(key, value);
+        ...queryParams // Espalha os parâmetros restantes enviados pelo frontend (ex: page, with_genres)
     });
 
     // 4. Constrói a URL final e faz a chamada para a API do TMDB.
-    const tmdbUrl = `https://api.themoviedb.org/3${endpoint}?${allParams.toString()}`;
+    // Garante que o endpoint comece com '/' corretamente se não tiver
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const tmdbUrl = `https://api.themoviedb.org/3${cleanEndpoint}?${allParams.toString()}`;
 
     try {
         const tmdbResponse = await fetch(tmdbUrl);
