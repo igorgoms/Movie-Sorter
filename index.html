@@ -4,308 +4,513 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Sorter</title>
+    <meta name="description" content="Escolha os gêneros e sorteie um filme para assistir hoje.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0e1a2b;
+            --panel: #152540;
+            --line: #2b4064;
+            --text: #eef2f8;
+            --muted: #a3b3ca;
+            --amber: #ffb627;
+            --red: #c9242b;
+            --error: #ff9a9e;
+            --paper: #f4efe4;
+            --ink: #1b1626;
+            --ink-muted: #5a5266;
+            --perforation: #b9b0a0;
+            color-scheme: dark;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
         body {
-            font-family: 'Press Start 2P', cursive;
-            background-color: #0d0221;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            color: var(--text);
+            font: 400 1rem/1.6 'DM Sans', system-ui, sans-serif;
+        }
+        button { font: inherit; }
+
+        /* Fundo: grade em duas escalas à deriva, com desvanecimento nas bordas.
+           A animação usa transform (compositor) em vez de background-position.
+           224px é múltiplo de 56px, então o loop é contínuo nas duas camadas. */
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+            -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 25%, #000 25%, transparent 80%);
+            mask-image: radial-gradient(ellipse 90% 80% at 50% 25%, #000 25%, transparent 80%);
+        }
+        .bg::before {
+            content: "";
+            position: absolute;
+            inset: -224px;
             background-image:
-                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
-            color: #f0f0f0;
-            animation: moveBackground 4s linear infinite; /* Animação do fundo */
+                linear-gradient(rgba(255, 182, 39, .13) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 182, 39, .13) 1px, transparent 1px),
+                linear-gradient(rgba(163, 179, 202, .09) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(163, 179, 202, .09) 1px, transparent 1px);
+            background-size: 224px 224px, 224px 224px, 56px 56px, 56px 56px;
+            animation: drift 30s linear infinite;
         }
-        @keyframes moveBackground {
-            0% { background-position: 0 0; }
-            100% { background-position: 40px 40px; }
+        @keyframes drift {
+            to { transform: translate(224px, 224px); }
         }
-        .container-90s {
-            border: 4px solid #00e5ff;
-            box-shadow: 0 0 15px #ff00c1, 0 0 20px #ff00c1 inset;
-            background-color: #26174a;
+
+        :focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+        .wordmark {
+            width: min(100%, 960px);
+            margin: 0 auto;
+            padding: 20px 20px 0;
+            font: 800 1.1rem/1 'Syne', sans-serif;
+            letter-spacing: 0.02em;
         }
-        .btn-90s {
-            border: 2px solid #f0f0f0;
-            background-color: #4b2a8f;
-            color: #f0f0f0;
-            box-shadow: 4px 4px 0px #0d0221;
-            transition: all 0.1s ease-in-out;
-            image-rendering: pixelated;
+        main { width: min(100%, 960px); margin: 0 auto; padding: 32px 20px 64px; flex: 1; }
+        h1 {
+            margin: 0 0 28px;
+            max-width: 18ch;
+            font: 800 clamp(2rem, 6vw, 3.6rem)/1.05 'Syne', sans-serif;
+        }
+
+        /* Seleção de gêneros */
+        .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+        .chip {
+            padding: 10px 16px;
+            border: 1.5px solid var(--line);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text);
+            font-weight: 500;
+            cursor: pointer;
+            transition: border-color .15s, background-color .15s;
+        }
+        .chip:hover { border-color: var(--amber); }
+        .chip[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: var(--ink); }
+        .chip[aria-pressed="true"]::before { content: "✓ "; }
+
+        .mode { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 28px; }
+        .mode-label { color: var(--muted); font-size: .95rem; }
+        .seg { position: relative; }
+        .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+        .seg span {
+            display: inline-block;
+            padding: 6px 14px;
+            border: 1.5px solid var(--line);
+            border-radius: 8px;
+            color: var(--muted);
+        }
+        .seg input:checked + span { border-color: var(--amber); color: var(--text); background: var(--panel); }
+        .seg input:focus-visible + span { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+        .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; margin-top: 28px; }
+        .btn-primary {
+            padding: 14px 28px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--red);
+            color: #fff;
+            font: 700 1.1rem/1 'Syne', sans-serif;
             cursor: pointer;
         }
-        .btn-90s:hover:not(:disabled) {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px #0d0221;
+        .btn-primary:hover:not(:disabled) { filter: brightness(1.12); }
+        .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+        .btn-text {
+            padding: 6px 2px;
+            border: 0;
+            background: none;
+            color: var(--muted);
+            text-decoration: underline;
+            cursor: pointer;
         }
-        .btn-90s.selected {
-            background-color: #ff00c1;
-            color: #fff;
-            border-color: #00e5ff;
-            box-shadow: 4px 4px 0px #00e5ff;
+        .btn-text:hover { color: var(--text); }
+        .status { margin: 16px 0 0; min-height: 1.6em; color: var(--muted); }
+        .status.is-error { color: var(--error); }
+
+        /* Resultado: ingresso */
+        #result { margin-top: 48px; }
+        .ticket {
+            position: relative;
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            background: var(--paper);
+            color: var(--ink);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: enter .5s cubic-bezier(.2, .8, .2, 1);
         }
-        .btn-90s:disabled {
-            background-color: #333;
-            color: #777;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
+        .ticket::before, .ticket::after {
+            content: "";
+            position: absolute;
+            left: calc(260px - 12px);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--bg);
         }
-        #sort-button {
-            background-color: #00ff85;
-            color: #0d0221;
-            font-weight: bold;
-            border-color: #f0f0f0;
-            animation: pulse-glow 2s infinite ease-in-out;
+        .ticket::before { top: -12px; }
+        .ticket::after { bottom: -12px; }
+        @keyframes enter {
+            from { opacity: 0; transform: translateY(24px) rotate(-1deg); }
+            to { opacity: 1; transform: none; }
         }
-        @keyframes pulse-glow {
-            0%, 100% {
-                box-shadow: 4px 4px 0px #0d0221, 0 0 10px #00ff85;
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 4px 4px 0px #0d0221, 0 0 25px #00ff85, 0 0 40px #00ff85;
-                transform: scale(1.05);
-            }
+        .stub { padding: 16px; }
+        .poster, .poster-fallback {
+            display: block;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            border-radius: 8px;
+            background: #d9d2c2;
         }
-        .glitch-text {
-            color: #00e5ff;
-            text-shadow:
-                -1px -1px 0 #ff00c1,
-                1px 1px 0 #00ff85;
+        .poster { object-fit: cover; height: auto; }
+        .poster-fallback { display: grid; place-items: center; padding: 16px; text-align: center; color: var(--ink-muted); }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 28px 32px;
+            border-left: 2px dashed var(--perforation);
         }
-        ::-webkit-scrollbar { width: 12px; }
-        ::-webkit-scrollbar-track { background: #0d0221; border: 1px solid #4b2a8f; }
-        ::-webkit-scrollbar-thumb { background: #ff00c1; border: 2px solid #00e5ff; }
-        ::-webkit-scrollbar-thumb:hover { background: #00ff85; }
+        .movie-title { margin: 0; font: 800 clamp(1.5rem, 4vw, 2.2rem)/1.1 'Syne', sans-serif; }
+        .movie-title:focus { outline: none; }
+        .facts { display: flex; gap: 32px; margin: 0; }
+        .facts dt { font-size: .8rem; color: var(--ink-muted); }
+        .facts dd { margin: 0; font: 700 1.4rem/1.2 'Syne', sans-serif; }
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+        .tags li {
+            padding: 2px 12px;
+            border: 1px solid var(--perforation);
+            border-radius: 999px;
+            font-size: .85rem;
+            color: var(--ink-muted);
+        }
+        .overview { margin: 0; max-width: 62ch; line-height: 1.65; }
+        .providers h3 { margin: 0 0 10px; font-size: .9rem; font-weight: 700; }
+        .providers p { margin: 0; color: var(--ink-muted); font-size: .9rem; }
+        .logos { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+        .logos img { display: block; width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+        .btn-reroll {
+            align-self: flex-start;
+            margin-top: auto;
+            padding: 12px 22px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--ink);
+            color: var(--paper);
+            font: 700 1rem/1 'Syne', sans-serif;
+            cursor: pointer;
+        }
+        .btn-reroll:hover { filter: brightness(1.3); }
+
+        .notice { padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+        .notice h2 { margin: 0 0 6px; font: 700 1.3rem/1.2 'Syne', sans-serif; }
+        .notice p { margin: 0; color: var(--muted); max-width: 60ch; }
+
+        footer { border-top: 1px solid var(--line); }
+        .footer-inner { width: min(100%, 960px); margin: 0 auto; padding: 24px 20px; color: var(--muted); font-size: .8rem; }
+        .footer-inner p { margin: 0 0 6px; }
+        .footer-inner a { color: inherit; }
+
+        @media (max-width: 680px) {
+            .ticket { grid-template-columns: 1fr; }
+            .ticket::before, .ticket::after { display: none; }
+            .stub { max-width: 240px; margin: 0 auto; }
+            .info { border-left: 0; border-top: 2px dashed var(--perforation); padding: 24px 20px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ticket, .bg::before { animation: none; }
+            .chip { transition: none; }
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body>
+    <div class="bg" aria-hidden="true"></div>
+    <div class="wordmark">Movie Sorter</div>
 
-    <main class="w-full flex-grow flex items-center justify-center">
-        <!-- Tela de Seleção de Gênero -->
-        <div id="selection-screen" class="container-90s w-full max-w-2xl p-6 md:p-8 rounded-lg">
-            <h1 class="text-2xl md:text-3xl text-center mb-6 glitch-text">MOVIE SORTER</h1>
-            <div id="status-message" class="text-center text-yellow-300 mb-6">Carregando...</div>
-            <div id="genre-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8"></div>
-            <button id="sort-button" class="btn-90s w-full py-3 text-lg" disabled>CARREGANDO...</button>
+    <main>
+        <h1>Escolha os gêneros. A gente escolhe o filme.</h1>
+
+        <div id="genre-grid" class="chips" role="group" aria-label="Gêneros"></div>
+
+        <div class="mode" role="radiogroup" aria-labelledby="mode-label">
+            <span id="mode-label" class="mode-label">O filme deve ter</span>
+            <label class="seg"><input type="radio" name="mode" value="all" checked><span>Todos os marcados</span></label>
+            <label class="seg"><input type="radio" name="mode" value="any"><span>Pelo menos um</span></label>
         </div>
 
-        <!-- Tela de Resultado do Filme -->
-        <div id="result-screen" class="hidden container-90s w-full max-w-2xl p-6 md:p-8 rounded-lg">
-            <h2 class="text-2xl text-center mb-6 glitch-text">A SUA SUGESTÃO É...</h2>
-            <div id="movie-result" class="flex flex-col md:flex-row gap-6 items-start md:items-center"></div>
-            <div id="no-result" class="hidden text-center py-8">
-                <p class="text-lg text-yellow-300">Não encontramos um filme com essa combinação.</p>
-                <p class="mt-2 text-sm">Pode ser uma combinação rara! Tente novamente ou com outros gêneros.</p>
-            </div>
-            <button id="back-button" class="btn-90s w-full py-3 mt-8">VOLTAR</button>
+        <div class="actions">
+            <button id="sort-button" class="btn-primary" type="button" disabled>Carregando…</button>
+            <button id="clear-button" class="btn-text" type="button">Limpar seleção</button>
         </div>
+        <p id="status" class="status" role="status">Carregando gêneros…</p>
+
+        <section id="result" hidden></section>
     </main>
-    
-    <footer class="w-full">
-        <p class="text-xs text-center text-gray-500 py-4">
-            Criado por Igor Lucena Gomes | Todos os direitos reservados - 2025 ©
-        </p>
+
+    <footer>
+        <div class="footer-inner">
+            <p>Criado por Igor Lucena Gomes. © 2025. Todos os direitos reservados.</p>
+            <p>
+                Dados de filmes: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
+                Este produto usa a API do TMDB, mas não é endossado nem certificado por ele.
+                Disponibilidade em streaming: <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.
+            </p>
+        </div>
     </footer>
 
     <script>
-        // --- CONFIGURAÇÃO ---
-        const IMG_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-        const MAX_RETRIES = 10;
+        // --- Configuração ---
+        const IMG = 'https://image.tmdb.org/t/p/';
+        const MAX_ATTEMPTS = 5;
+        const MIN_VOTES = '200'; // filtra títulos sem avaliações suficientes
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // --- ELEMENTOS DO DOM ---
-        const selectionScreen = document.getElementById('selection-screen');
-        const resultScreen = document.getElementById('result-screen');
-        const genreGrid = document.getElementById('genre-grid');
-        const sortButton = document.getElementById('sort-button');
-        const backButton = document.getElementById('back-button');
-        const movieResultContainer = document.getElementById('movie-result');
-        const noResultContainer = document.getElementById('no-result');
-        const statusMessage = document.getElementById('status-message');
+        // --- DOM e estado ---
+        const $ = (id) => document.getElementById(id);
+        const chipsEl = $('genre-grid');
+        const sortBtn = $('sort-button');
+        const clearBtn = $('clear-button');
+        const statusEl = $('status');
+        const resultEl = $('result');
 
-        // --- ESTADO DA APLICAÇÃO ---
-        let genreMap = new Map();
-        let selectedGenreIds = [];
-        let totalPages = 1;
+        const state = {
+            genres: new Map(),
+            selected: new Set(),
+            mode: 'all',       // 'all' = AND (vírgula) | 'any' = OR (pipe)
+            seen: new Set(),   // evita repetir o mesmo filme em sorteios consecutivos
+            busy: false,
+        };
 
-        // --- INICIALIZAÇÃO ---
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        // Cria elementos sem innerHTML: dados da API entram sempre como texto.
+        function el(tag, props = {}, ...children) {
+            const node = document.createElement(tag);
+            for (const [key, value] of Object.entries(props)) {
+                if (key === 'class') node.className = value;
+                else node.setAttribute(key, value);
+            }
+            node.append(...children);
+            return node;
+        }
 
+        // --- API (proxy serverless) ---
         async function apiFetch(endpoint, params = {}) {
-            const query = new URLSearchParams(params);
-            const response = await fetch(`/api/tmdb?endpoint=${endpoint}&${query.toString()}`);
+            const query = new URLSearchParams({ endpoint, ...params });
+            const response = await fetch(`/api/tmdb?${query}`);
             if (!response.ok) {
-                throw new Error(`Falha na chamada da API para o endpoint: ${endpoint}`);
+                throw new Error(`Falha na API (${response.status}) em ${endpoint}`);
             }
             return response.json();
         }
 
-        async function initializeApp() {
-            try {
-                const genreData = await apiFetch('/genre/movie/list', { language: 'pt-BR' });
-                genreData.genres.forEach(genre => genreMap.set(genre.id, genre.name));
-
-                const movieData = await apiFetch('/discover/movie');
-                totalPages = Math.min(movieData.total_pages, 500);
-
-                createGenreButtons();
-                statusMessage.textContent = 'Escolha um ou mais gêneros:';
-                sortButton.disabled = false;
-                sortButton.innerText = 'SORT';
-
-            } catch (error) {
-                console.error('Falha ao inicializar a aplicação:', error);
-                statusMessage.innerHTML = 'Não foi possível carregar os dados.<br>Tente recarregar a página.';
-                sortButton.innerText = 'ERRO';
-            }
-        }
-
-        // --- FUNÇÕES DA API (agora chamando nossa função serverless) ---
-        async function fetchWatchProviders(movieId) {
+        async function fetchProviders(movieId) {
             try {
                 const data = await apiFetch(`/movie/${movieId}/watch/providers`);
-                return data.results?.BR?.flatrate || [];
+                return data.results?.BR?.flatrate ?? [];
             } catch (error) {
                 console.error('Erro ao buscar provedores de streaming:', error);
                 return [];
             }
         }
 
-        async function findMatchingMovie() {
-            for (let i = 0; i < MAX_RETRIES; i++) {
-                const randomPage = Math.floor(Math.random() * totalPages) + 1;
-                const params = {
-                    page: randomPage,
-                    with_genres: selectedGenreIds.join(',')
-                };
-                const data = await apiFetch('/discover/movie', params);
-                const validMovies = data.results.filter(movie => movie.poster_path && movie.overview);
+        // total_pages vem da própria consulta filtrada; usar o total do /discover sem
+        // filtro faria a maioria das páginas sorteadas ficar vazia.
+        async function findMovie() {
+            const base = {
+                with_genres: [...state.selected].join(state.mode === 'all' ? ',' : '|'),
+                sort_by: 'popularity.desc',
+                'vote_count.gte': MIN_VOTES,
+            };
+            const first = await apiFetch('/discover/movie', { ...base, page: 1 });
+            const totalPages = Math.min(first.total_pages || 0, 500);
+            if (!totalPages) return null;
 
-                if (validMovies.length > 0) {
-                    return validMovies[Math.floor(Math.random() * validMovies.length)];
-                }
+            const pick = (results) => {
+                const candidates = results.filter((m) => m.poster_path && m.overview && !state.seen.has(m.id));
+                return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
+            };
+
+            for (let i = 0; i < MAX_ATTEMPTS; i++) {
+                const page = 1 + Math.floor(Math.random() * totalPages);
+                const data = page === 1 ? first : await apiFetch('/discover/movie', { ...base, page });
+                const movie = pick(data.results);
+                if (movie) return movie;
             }
-            return null;
+
+            // Combinação pequena: todos os resultados já saíram. Reinicia o histórico.
+            const fallback = pick(first.results);
+            if (fallback) return fallback;
+            state.seen.clear();
+            return pick(first.results);
         }
 
-        // --- LÓGICA DA UI ---
-        function createGenreButtons() {
-            genreGrid.innerHTML = '';
-            const sortedGenres = [...genreMap.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-
-            for (const [id, name] of sortedGenres) {
-                const button = document.createElement('button');
-                button.innerText = name;
-                button.classList.add('btn-90s', 'p-2', 'text-xs', 'md:text-sm', 'truncate');
-                button.dataset.genreId = id;
-                button.addEventListener('click', () => toggleGenre(button, id));
-                genreGrid.appendChild(button);
-            }
+        // --- Seleção ---
+        function setStatus(message, isError = false) {
+            statusEl.textContent = message;
+            statusEl.classList.toggle('is-error', isError);
         }
 
-        function toggleGenre(button, genreId) {
-            button.classList.toggle('selected');
-            if (selectedGenreIds.includes(genreId)) {
-                selectedGenreIds = selectedGenreIds.filter(id => id !== genreId);
+        function updateStatus() {
+            const n = state.selected.size;
+            if (n === 0) setStatus('Selecione pelo menos um gênero.');
+            else setStatus(n === 1 ? '1 gênero selecionado.' : `${n} gêneros selecionados.`);
+        }
+
+        function buildChips() {
+            const sorted = [...state.genres.entries()].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'));
+            const nodes = sorted.map(([id, name]) => {
+                const chip = el('button', { class: 'chip', type: 'button', 'aria-pressed': 'false' }, name);
+                chip.dataset.genreId = id;
+                return chip;
+            });
+            chipsEl.replaceChildren(...nodes);
+        }
+
+        chipsEl.addEventListener('click', (event) => {
+            const chip = event.target.closest('.chip');
+            if (!chip) return;
+            const id = Number(chip.dataset.genreId);
+            const nowSelected = !state.selected.has(id);
+            if (nowSelected) state.selected.add(id); else state.selected.delete(id);
+            chip.setAttribute('aria-pressed', String(nowSelected));
+            state.seen.clear();
+            updateStatus();
+        });
+
+        document.querySelectorAll('input[name="mode"]').forEach((input) => {
+            input.addEventListener('change', () => {
+                state.mode = input.value;
+                state.seen.clear();
+            });
+        });
+
+        clearBtn.addEventListener('click', () => {
+            state.selected.clear();
+            state.seen.clear();
+            chipsEl.querySelectorAll('.chip').forEach((chip) => chip.setAttribute('aria-pressed', 'false'));
+            updateStatus();
+        });
+
+        // --- Renderização do resultado ---
+        function showResult(node, focusTarget) {
+            resultEl.replaceChildren(node);
+            resultEl.hidden = false;
+            if (focusTarget) focusTarget.focus({ preventScroll: true });
+            resultEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        }
+
+        function renderMovie(movie, providers) {
+            const year = movie.release_date ? movie.release_date.slice(0, 4) : '—';
+            const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '—';
+            const genreNames = movie.genre_ids.map((id) => state.genres.get(id)).filter(Boolean);
+
+            const poster = el('img', {
+                class: 'poster',
+                src: `${IMG}w500${movie.poster_path}`,
+                alt: `Pôster de ${movie.title}`,
+                width: '500',
+                height: '750',
+                loading: 'lazy',
+            });
+            poster.addEventListener('error', () => {
+                poster.replaceWith(el('div', { class: 'poster-fallback' }, 'Pôster indisponível'));
+            }, { once: true });
+
+            const title = el('h2', { class: 'movie-title', tabindex: '-1' }, movie.title);
+
+            const facts = el('dl', { class: 'facts' },
+                el('div', {}, el('dt', {}, 'Ano'), el('dd', {}, year)),
+                el('div', {}, el('dt', {}, 'Nota TMDB'), el('dd', {}, rating)),
+            );
+
+            const tags = el('ul', { class: 'tags' }, ...genreNames.map((name) => el('li', {}, name)));
+
+            const providersBlock = el('div', { class: 'providers' }, el('h3', {}, 'Onde assistir no Brasil'));
+            if (providers.length) {
+                providersBlock.append(el('ul', { class: 'logos' }, ...providers.map((p) => el('li', {},
+                    el('img', {
+                        src: `${IMG}w92${p.logo_path}`,
+                        alt: p.provider_name,
+                        title: p.provider_name,
+                        width: '44',
+                        height: '44',
+                        loading: 'lazy',
+                    }),
+                ))));
             } else {
-                selectedGenreIds.push(genreId);
+                providersBlock.append(el('p', {}, 'Não está em nenhum streaming por assinatura no Brasil.'));
             }
+
+            const reroll = el('button', { class: 'btn-reroll', type: 'button', 'data-action': 'reroll' }, 'Sortear outro');
+
+            const ticket = el('article', { class: 'ticket' },
+                el('div', { class: 'stub' }, poster),
+                el('div', { class: 'info' }, title, facts, tags, el('p', { class: 'overview' }, movie.overview), providersBlock, reroll),
+            );
+            showResult(ticket, title);
         }
 
-        sortButton.addEventListener('click', async () => {
-            if (selectedGenreIds.length === 0) {
-                statusMessage.textContent = 'Por favor, selecione pelo menos um gênero!';
+        function renderNotice(heading, text) {
+            const notice = el('div', { class: 'notice' }, el('h2', { tabindex: '-1' }, heading), el('p', {}, text));
+            showResult(notice, notice.querySelector('h2'));
+        }
+
+        // --- Sorteio ---
+        async function sortMovie() {
+            if (state.busy) return;
+            if (state.selected.size === 0) {
+                setStatus('Selecione pelo menos um gênero para sortear.', true);
                 return;
             }
-            statusMessage.textContent = 'Escolha um ou mais gêneros:';
-
-            sortButton.disabled = true;
-            sortButton.innerText = 'PROCURANDO...';
-            
+            state.busy = true;
+            sortBtn.disabled = true;
+            sortBtn.textContent = 'Sorteando…';
             try {
-                const movie = await findMatchingMovie();
-                if (movie) {
-                    const providers = await fetchWatchProviders(movie.id);
-                    displayMovie(movie, providers);
+                const movie = await findMovie();
+                if (!movie) {
+                    renderNotice('Nenhum filme encontrado', 'Tente a opção "Pelo menos um" ou remova algum gênero.');
                 } else {
-                    displayNoResult();
+                    state.seen.add(movie.id);
+                    renderMovie(movie, await fetchProviders(movie.id));
                 }
             } catch (error) {
-                console.error("Erro ao sortear filme:", error);
-                displayNoResult();
+                console.error('Erro ao sortear filme:', error);
+                renderNotice('Não foi possível sortear', 'A consulta ao TMDB falhou. Tente novamente em instantes.');
             } finally {
-                sortButton.disabled = false;
-                sortButton.innerText = 'SORT';
+                state.busy = false;
+                sortBtn.disabled = false;
+                sortBtn.textContent = 'Sortear filme';
             }
+        }
+
+        sortBtn.addEventListener('click', sortMovie);
+        resultEl.addEventListener('click', (event) => {
+            if (event.target.closest('[data-action="reroll"]')) sortMovie();
         });
 
-        function displayMovie(movie, providers) {
-            const year = movie.release_date ? movie.release_date.substring(0, 4) : 'N/A';
-            const posterUrl = `${IMG_BASE_URL}${movie.poster_path}`;
-            const genreNames = movie.genre_ids.map(id => genreMap.get(id) || '').filter(Boolean).join(' / ');
-
-            let providersHtml = '';
-            if (providers && providers.length > 0) {
-                providersHtml = `
-                    <div class="mt-4 pt-4 border-t-2 border-dashed border-pink-500">
-                        <h4 class="text-sm font-bold text-gray-300 mb-3">Onde assistir (Streaming):</h4>
-                        <div class="flex flex-wrap gap-3">
-                            ${providers.map(p => `
-                                <img src="${IMG_BASE_URL}${p.logo_path}" 
-                                     alt="${p.provider_name}" 
-                                     title="${p.provider_name}" 
-                                     class="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover border-2 border-gray-400">
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            } else {
-                 providersHtml = `
-                    <div class="mt-4 pt-4 border-t-2 border-dashed border-pink-500">
-                         <p class="text-sm text-gray-400">Não encontramos este filme em serviços de streaming no Brasil.</p>
-                    </div>
-                `;
+        // --- Inicialização ---
+        async function init() {
+            try {
+                const { genres } = await apiFetch('/genre/movie/list', { language: 'pt-BR' });
+                genres.forEach((g) => state.genres.set(g.id, g.name));
+                buildChips();
+                updateStatus();
+                sortBtn.disabled = false;
+                sortBtn.textContent = 'Sortear filme';
+            } catch (error) {
+                console.error('Falha ao inicializar a aplicação:', error);
+                setStatus('Não foi possível carregar os gêneros. Recarregue a página.', true);
+                sortBtn.textContent = 'Indisponível';
             }
-
-            movieResultContainer.innerHTML = `
-                <div class="w-full md:w-1/3 flex-shrink-0">
-                    <img src="${posterUrl}" alt="Pôster de ${movie.title}" class="w-full max-w-xs mx-auto md:max-w-none rounded-md border-2 border-[#f0f0f0] shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/500x750/0d0221/00e5ff?text=Pôster+Indisponível';">
-                </div>
-                <div class="w-full md:w-2/3">
-                    <h3 class="text-xl md:text-2xl font-bold text-yellow-300">${movie.title} (${year})</h3>
-                    <p class="text-xs mt-2 mb-4 text-gray-400">${genreNames}</p>
-                    <p class="text-sm md:text-base">${movie.overview}</p>
-                    ${providersHtml}
-                </div>
-            `;
-            movieResultContainer.classList.remove('hidden');
-            noResultContainer.classList.add('hidden');
-            showScreen('result');
         }
-
-        function displayNoResult() {
-            movieResultContainer.classList.add('hidden');
-            noResultContainer.classList.remove('hidden');
-            showScreen('result');
-        }
-
-        backButton.addEventListener('click', () => {
-            selectedGenreIds = [];
-            document.querySelectorAll('#genre-grid .btn-90s').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            showScreen('selection');
-        });
-
-        function showScreen(screenName) {
-            selectionScreen.classList.toggle('hidden', screenName !== 'selection');
-            resultScreen.classList.toggle('hidden', screenName !== 'result');
-        }
+        init();
     </script>
 </body>
 </html>
-
