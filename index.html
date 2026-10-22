@@ -2,7 +2,9 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0e1a2b">
+    <meta name="color-scheme" content="dark">
     <title>Movie Sorter</title>
     <meta name="description" content="Escolha os gêneros e sorteie um filme para assistir hoje.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,16 +27,31 @@
             color-scheme: dark;
         }
         *, *::before, *::after { box-sizing: border-box; }
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            scroll-padding-top: calc(16px + env(safe-area-inset-top, 0px));
+        }
         body {
             margin: 0;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             background: var(--bg);
             color: var(--text);
             font: 400 1rem/1.6 'DM Sans', system-ui, sans-serif;
         }
-        button { font: inherit; }
+        button {
+            font: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        button:active:not(:disabled) { transform: scale(.97); }
 
         /* Fundo: grade em duas escalas à deriva, com desvanecimento nas bordas.
            A animação usa transform (compositor) em vez de background-position.
@@ -58,6 +75,7 @@
                 linear-gradient(rgba(163, 179, 202, .09) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(163, 179, 202, .09) 1px, transparent 1px);
             background-size: 224px 224px, 224px 224px, 56px 56px, 56px 56px;
+            will-change: transform;
             animation: drift 30s linear infinite;
         }
         @keyframes drift {
@@ -69,11 +87,11 @@
         .wordmark {
             width: min(100%, 960px);
             margin: 0 auto;
-            padding: 20px 20px 0;
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
             font: 800 1.1rem/1 'Syne', sans-serif;
             letter-spacing: 0.02em;
         }
-        main { width: min(100%, 960px); margin: 0 auto; padding: 32px 20px 64px; flex: 1; }
+        main { width: min(100%, 960px); margin: 0 auto; padding: 32px max(20px, env(safe-area-inset-right)) 64px max(20px, env(safe-area-inset-left)); flex: 1; }
         h1 {
             margin: 0 0 28px;
             max-width: 18ch;
@@ -92,16 +110,18 @@
             cursor: pointer;
             transition: border-color .15s, background-color .15s;
         }
-        .chip:hover { border-color: var(--amber); }
+        @media (hover: hover) { .chip:hover { border-color: var(--amber); } }
         .chip[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: var(--ink); }
         .chip[aria-pressed="true"]::before { content: "✓ "; }
 
         .mode { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 28px; }
         .mode-label { color: var(--muted); font-size: .95rem; }
-        .seg { position: relative; }
+        .seg { position: relative; display: inline-flex; }
         .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
         .seg span {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
             padding: 6px 14px;
             border: 1.5px solid var(--line);
             border-radius: 8px;
@@ -110,8 +130,10 @@
         .seg input:checked + span { border-color: var(--amber); color: var(--text); background: var(--panel); }
         .seg input:focus-visible + span { outline: 3px solid var(--amber); outline-offset: 3px; }
 
-        .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; margin-top: 28px; }
+        .dock { margin-top: 28px; }
+        .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
         .btn-primary {
+            min-height: 48px;
             padding: 14px 28px;
             border: 0;
             border-radius: 10px;
@@ -120,18 +142,21 @@
             font: 700 1.1rem/1 'Syne', sans-serif;
             cursor: pointer;
         }
-        .btn-primary:hover:not(:disabled) { filter: brightness(1.12); }
+        @media (hover: hover) { .btn-primary:hover:not(:disabled) { filter: brightness(1.12); } }
         .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
         .btn-text {
-            padding: 6px 2px;
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 6px 8px;
             border: 0;
             background: none;
             color: var(--muted);
             text-decoration: underline;
             cursor: pointer;
         }
-        .btn-text:hover { color: var(--text); }
-        .status { margin: 16px 0 0; min-height: 1.6em; color: var(--muted); }
+        @media (hover: hover) { .btn-text:hover { color: var(--text); } }
+        .status { margin: 12px 0 0; min-height: 1.6em; color: var(--muted); }
         .status.is-error { color: var(--error); }
 
         /* Resultado: ingresso */
@@ -200,6 +225,7 @@
         .btn-reroll {
             align-self: flex-start;
             margin-top: auto;
+            min-height: 48px;
             padding: 12px 22px;
             border: 0;
             border-radius: 10px;
@@ -208,22 +234,53 @@
             font: 700 1rem/1 'Syne', sans-serif;
             cursor: pointer;
         }
-        .btn-reroll:hover { filter: brightness(1.3); }
+        @media (hover: hover) { .btn-reroll:hover { filter: brightness(1.3); } }
 
         .notice { padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
         .notice h2 { margin: 0 0 6px; font: 700 1.3rem/1.2 'Syne', sans-serif; }
         .notice p { margin: 0; color: var(--muted); max-width: 60ch; }
 
         footer { border-top: 1px solid var(--line); }
-        .footer-inner { width: min(100%, 960px); margin: 0 auto; padding: 24px 20px; color: var(--muted); font-size: .8rem; }
+        .footer-inner { width: min(100%, 960px); margin: 0 auto; padding: 24px max(20px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); color: var(--muted); font-size: .8rem; }
         .footer-inner p { margin: 0 0 6px; }
         .footer-inner a { color: inherit; }
 
         @media (max-width: 680px) {
+            /* O dock vem depois do resultado (order) para que, ao ficar fixo no rodapé
+               da viewport, nunca cubra o fim do conteúdo. */
+            main { display: flex; flex-direction: column; padding-top: 24px; }
+            h1 { margin-bottom: 20px; }
+            .chips { gap: 8px; }
+            .mode { margin-top: 20px; }
+            #result { order: 1; margin-top: 32px; }
+            .dock {
+                order: 2;
+                position: sticky;
+                bottom: 0;
+                z-index: 5;
+                margin: 20px calc(-1 * max(20px, env(safe-area-inset-right))) 0 calc(-1 * max(20px, env(safe-area-inset-left)));
+                padding: 12px max(20px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+                background: rgba(14, 26, 43, .92);
+                -webkit-backdrop-filter: blur(12px);
+                backdrop-filter: blur(12px);
+                border-top: 1px solid var(--line);
+            }
+            .actions { flex-wrap: nowrap; gap: 8px; }
+            .btn-primary { flex: 1; }
+            .status { margin-top: 8px; min-height: 0; font-size: .85rem; }
             .ticket { grid-template-columns: 1fr; }
             .ticket::before, .ticket::after { display: none; }
             .stub { max-width: 240px; margin: 0 auto; }
             .info { border-left: 0; border-top: 2px dashed var(--perforation); padding: 24px 20px; }
+            .btn-reroll { align-self: stretch; }
+        }
+        @media (max-width: 400px) {
+            .facts { gap: 24px; }
+            .info { padding: 20px 16px; }
+        }
+        @media (max-width: 680px) and (max-height: 520px) {
+            .dock { padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+            .btn-primary { min-height: 44px; padding-block: 10px; }
         }
         @media (prefers-reduced-motion: reduce) {
             .ticket, .bg::before { animation: none; }
@@ -246,11 +303,13 @@
             <label class="seg"><input type="radio" name="mode" value="any"><span>Pelo menos um</span></label>
         </div>
 
-        <div class="actions">
-            <button id="sort-button" class="btn-primary" type="button" disabled>Carregando…</button>
-            <button id="clear-button" class="btn-text" type="button">Limpar seleção</button>
+        <div class="dock">
+            <div class="actions">
+                <button id="sort-button" class="btn-primary" type="button" disabled>Carregando…</button>
+                <button id="clear-button" class="btn-text" type="button">Limpar seleção</button>
+            </div>
+            <p id="status" class="status" role="status">Carregando gêneros…</p>
         </div>
-        <p id="status" class="status" role="status">Carregando gêneros…</p>
 
         <section id="result" hidden></section>
     </main>
