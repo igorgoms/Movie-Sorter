@@ -5,22 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0e1a2b">
     <meta name="color-scheme" content="dark">
-    <title>Movie Sorter</title>
-    <meta name="description" content="Escolha os gêneros e sorteie um filme para assistir hoje.">
+    <title>Sorteador de Filmes: o que assistir hoje? | Movie Sorter</title>
+    <meta name="description" content="Sorteador de filmes grátis: escolha gêneros como terror, comédia, família ou romance e sorteie um filme com nota, sinopse e onde assistir no streaming.">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="https://movie-sorter-gules.vercel.app/">
+    <link rel="alternate" hreflang="pt-BR" href="https://movie-sorter-gules.vercel.app/">
+    <link rel="alternate" hreflang="en" href="https://movie-sorter-gules.vercel.app/en/">
+    <link rel="alternate" hreflang="x-default" href="https://movie-sorter-gules.vercel.app/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Movie Sorter">
+    <meta property="og:title" content="Sorteador de Filmes: o que assistir hoje? | Movie Sorter">
+    <meta property="og:description" content="Escolha os gêneros e sorteie um filme para assistir hoje, com nota, sinopse e onde assistir. Grátis, para família, Halloween, Natal e qualquer noite.">
+    <meta property="og:url" content="https://movie-sorter-gules.vercel.app/">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://movie-sorter-gules.vercel.app/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sorteador de Filmes: o que assistir hoje? | Movie Sorter">
+    <meta name="twitter:description" content="Escolha os gêneros e sorteie um filme para assistir hoje, com nota, sinopse e onde assistir. Grátis, para família, Halloween, Natal e qualquer noite.">
+    <meta name="twitter:image" content="https://movie-sorter-gules.vercel.app/og-image.png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/favicon-48.png" sizes="48x48">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebApplication", "@id": "https://movie-sorter-gules.vercel.app/#app", "name": "Movie Sorter – Sorteador de Filmes", "url": "https://movie-sorter-gules.vercel.app/", "description": "Sorteador de filmes gratuito: escolha os gêneros e descubra o que assistir hoje, com nota, sinopse e onde assistir no streaming.", "applicationCategory": "EntertainmentApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "inLanguage": "pt-BR", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "BRL"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "O Movie Sorter é grátis?", "acceptedAnswer": {"@type": "Answer", "text": "Sim. Não precisa de cadastro nem de pagamento: escolha os gêneros e sorteie."}}, {"@type": "Question", "name": "De onde vêm os filmes e as notas?", "acceptedAnswer": {"@type": "Answer", "text": "Os dados vêm da API do TMDB (The Movie Database). Só entram filmes com avaliações suficientes, para evitar títulos desconhecidos ou sem informação."}}, {"@type": "Question", "name": "Como sei onde assistir ao filme sorteado?", "acceptedAnswer": {"@type": "Answer", "text": "Cada resultado mostra os streamings por assinatura disponíveis no Brasil, com dados do JustWatch. Se o filme não estiver em nenhum, o site avisa."}}, {"@type": "Question", "name": "Posso sortear um filme de terror para o Halloween?", "acceptedAnswer": {"@type": "Answer", "text": "Pode. Marque o gênero Terror (e, se quiser, Mistério ou Suspense) e sorteie quantas vezes quiser."}}, {"@type": "Question", "name": "Dá para sortear um filme para ver em família?", "acceptedAnswer": {"@type": "Answer", "text": "Dá. Marque Família, e se quiser algo mais leve, junte com Animação ou Comédia."}}]}]}</script>
+    <link rel="preconnect" href="https://image.tmdb.org">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <script>
-        // Idioma: ?lang=pt|en > escolha salva > idioma do navegador (pt* = português, resto = inglês).
-        (function () {
-            var q = new URLSearchParams(location.search).get('lang');
-            var saved = null;
-            try { saved = localStorage.getItem('movie-sorter-lang'); } catch (e) {}
-            var nav = (navigator.language || 'pt').toLowerCase();
-            var lang = (q === 'en' || q === 'pt') ? q : (saved === 'en' || saved === 'pt') ? saved : (nav.indexOf('pt') === 0 ? 'pt' : 'en');
-            document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
-        })();
-    </script>
     <!-- TEMA SAZONAL: HALLOWEEN (temporário).
          Remoção: apagar este <script>, o bloco CSS "TEMA HALLOWEEN", os elementos .halloween-deco, .halloween-graveyard, .halloween-credit, o <svg> do filtro #torn e o bloco "MÚSICA HALLOWEEN" no <script>, e a pasta /halloween (inclui musica.mp3).
          Janela automática: 15/out a 02/nov (horário local do visitante).
@@ -95,7 +108,7 @@
             right: 20%;
             width: clamp(64px, 12vw, 130px);
             aspect-ratio: 1;
-            background: url("halloween/bats.webp") center / contain no-repeat;
+            background: url("/halloween/bats.webp") center / contain no-repeat;
         }
         html[data-theme="halloween"] .deco-spider {
             --sw: 34px;
@@ -107,7 +120,7 @@
             transform-origin: top center;
             background:
                 linear-gradient(#4b2f82, #4b2f82) top center / 1px calc(var(--sh) - var(--sw) / 1.148) no-repeat,
-                url("halloween/spider.webp") bottom center / var(--sw) auto no-repeat;
+                url("/halloween/spider.webp") bottom center / var(--sw) auto no-repeat;
             animation: spider-drop 3s cubic-bezier(.3, .7, .3, 1) 1s both;
         }
         html[data-theme="halloween"] .deco-witch {
@@ -115,14 +128,14 @@
             left: 0;
             width: clamp(110px, 22vw, 220px);
             aspect-ratio: 500 / 265;
-            background: url("halloween/witch.webp") center / contain no-repeat;
+            background: url("/halloween/witch.webp") center / contain no-repeat;
             animation: witch-fly 26s linear 2s 1 both;
         }
         html[data-theme="halloween"] .halloween-graveyard {
             display: block;
             height: clamp(56px, 11vw, 150px);
             margin-top: -16px;
-            background: url("halloween/graveyard.webp") left bottom / auto 100% repeat-x;
+            background: url("/halloween/graveyard.webp") left bottom / auto 100% repeat-x;
             pointer-events: none;
             position: relative;
             isolation: isolate;
@@ -143,12 +156,12 @@
         html[data-theme="halloween"] .halloween-graveyard::before {
             left: 1%;
             aspect-ratio: 482 / 900;
-            background-image: url("halloween/house.webp");
+            background-image: url("/halloween/house.webp");
         }
         html[data-theme="halloween"] .halloween-graveyard::after {
             right: 1%;
             aspect-ratio: 724 / 900;
-            background-image: url("halloween/tree.webp");
+            background-image: url("/halloween/tree.webp");
         }
         html[data-theme="halloween"] .wordmark::before {
             content: "";
@@ -157,7 +170,7 @@
             height: 1.25em;
             margin-right: .45em;
             vertical-align: -.3em;
-            background: url("halloween/pumpkin.webp") center / contain no-repeat;
+            background: url("/halloween/pumpkin.webp") center / contain no-repeat;
         }
         html[data-theme="halloween"] .chip[data-genre-id="27"]::after {
             content: "";
@@ -166,7 +179,7 @@
             height: 1.1em;
             margin-left: .4em;
             vertical-align: -.2em;
-            background: url("halloween/pumpkin.webp") center / contain no-repeat;
+            background: url("/halloween/pumpkin.webp") center / contain no-repeat;
         }
         html[data-theme="halloween"] .chip[data-genre-id="27"][aria-pressed="true"]::after { filter: brightness(0); }
         /* Gato sentado sobre a linha de ações (no celular, sobre a barra fixa) */
@@ -178,7 +191,7 @@
             bottom: 100%;
             width: 38px;
             aspect-ratio: 207 / 300;
-            background: url("halloween/cat.webp") bottom center / contain no-repeat;
+            background: url("/halloween/cat.webp") bottom center / contain no-repeat;
             pointer-events: none;
         }
         /* Fantasma no aviso de "nenhum filme" */
@@ -191,7 +204,7 @@
             width: 64px;
             aspect-ratio: 1;
             transform: translateY(-50%);
-            background: url("halloween/ghost.webp") center / contain no-repeat;
+            background: url("/halloween/ghost.webp") center / contain no-repeat;
         }
         @keyframes spider-drop {
             from { transform: translateY(-100%); }
@@ -285,10 +298,14 @@
             gap: 8px;
         }
         .lang { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
-        .lang button {
+        .lang a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             min-width: 40px;
             min-height: 34px;
             padding: 0 10px;
+            text-decoration: none;
             border: 0;
             background: transparent;
             color: var(--muted);
@@ -297,8 +314,17 @@
             letter-spacing: .04em;
             cursor: pointer;
         }
-        .lang button[aria-pressed="true"] { background: var(--amber); color: var(--ink); }
-        @media (hover: hover) { .lang button[aria-pressed="false"]:hover { color: var(--text); } }
+        .lang a[aria-current="true"] { background: var(--amber); color: var(--ink); }
+        @media (hover: hover) { .lang a:not([aria-current]):hover { color: var(--text); } }
+        .about { width: min(100%, 960px); margin: 0 auto; padding: 8px max(20px, env(safe-area-inset-right)) 56px max(20px, env(safe-area-inset-left)); color: var(--muted); font-size: .95rem; }
+        .about h2 { margin: 0 0 12px; color: var(--text); font: 800 clamp(1.25rem, 3vw, 1.6rem)/1.2 'Syne', sans-serif; }
+        .about h3 { margin: 28px 0 8px; color: var(--text); font: 700 1.05rem/1.3 'Syne', sans-serif; }
+        .about p, .about li { max-width: 70ch; }
+        .about ol, .about ul { margin: 0; padding-left: 1.25em; }
+        .about strong { color: var(--text); font-weight: 500; }
+        .about details { max-width: 70ch; border-bottom: 1px solid var(--line); }
+        .about summary { padding: 10px 0; color: var(--text); cursor: pointer; }
+        .about details p { margin: 0 0 12px; }
         *, *::before, *::after { box-sizing: border-box; }
         html {
             -webkit-text-size-adjust: 100%;
@@ -579,10 +605,10 @@
     <div class="top">
         <div class="wordmark">Movie Sorter</div>
         <div class="toolbar">
-            <div class="lang" role="group" data-i18n-aria="langLabel">
-                <button type="button" data-lang-btn="pt" lang="pt-BR" aria-label="Português" aria-pressed="false">PT</button>
-                <button type="button" data-lang-btn="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
-            </div>
+            <nav class="lang" data-i18n-aria="langLabel" aria-label="Idioma">
+                <a href="/" hreflang="pt-BR" lang="pt-BR" data-lang-btn="pt" aria-label="Português">PT</a>
+                <a href="/en/" hreflang="en" lang="en" data-lang-btn="en" aria-label="English">EN</a>
+            </nav>
         </div>
     </div>
 
@@ -607,6 +633,17 @@
 
         <section id="result" hidden></section>
     </main>
+
+    <section class="about" aria-labelledby="about-title">
+        <h2 id="about-title">Sorteador de filmes: descubra o que assistir hoje</h2>
+        <p>O Movie Sorter é um sorteador de filmes gratuito. Marque um ou mais gêneros — terror, comédia, família, romance, ação, animação, suspense e outros — e sorteie um filme entre os mais populares do TMDB, com pôster, nota, sinopse e em quais streamings por assinatura ele está disponível no Brasil.</p>
+        <h3>Como sortear um filme</h3>
+        <ol><li>Marque os gêneros que você quer assistir.</li><li>Escolha se o filme deve ter todos os gêneros marcados ou pelo menos um.</li><li>Clique em “Sortear filme”. Não gostou? Clique em “Sortear outro”.</li></ol>
+        <h3>Um filme para cada ocasião</h3>
+        <ul><li><strong>Cinema em família:</strong> marque Família e Animação para filmes que agradam todas as idades.</li><li><strong>Halloween:</strong> combine Terror, Mistério e Suspense. Em outubro o site ganha um tema de Halloween.</li><li><strong>Noite de Natal:</strong> Família, Comédia e Fantasia rendem boas ideias para a ceia e o pós-ceia.</li><li><strong>Casal ou amigos:</strong> Romance, Comédia ou Ação para decidir sem discussão.</li></ul>
+        <h3>Perguntas frequentes</h3>
+        <details><summary>O Movie Sorter é grátis?</summary><p>Sim. Não precisa de cadastro nem de pagamento: escolha os gêneros e sorteie.</p></details><details><summary>De onde vêm os filmes e as notas?</summary><p>Os dados vêm da API do TMDB (The Movie Database). Só entram filmes com avaliações suficientes, para evitar títulos desconhecidos ou sem informação.</p></details><details><summary>Como sei onde assistir ao filme sorteado?</summary><p>Cada resultado mostra os streamings por assinatura disponíveis no Brasil, com dados do JustWatch. Se o filme não estiver em nenhum, o site avisa.</p></details><details><summary>Posso sortear um filme de terror para o Halloween?</summary><p>Pode. Marque o gênero Terror (e, se quiser, Mistério ou Suspense) e sorteie quantas vezes quiser.</p></details><details><summary>Dá para sortear um filme para ver em família?</summary><p>Dá. Marque Família, e se quiser algo mais leve, junte com Animação ou Comédia.</p></details>
+    </section>
 
     <div class="halloween-graveyard" aria-hidden="true"></div>
 
@@ -710,8 +747,6 @@
             genres: new Map(),
             phase: 'loading',  // 'loading' | 'ready' | 'error' (texto do botão principal)
             status: { key: 'loadingGenres', isError: false, args: [] },
-            current: null,     // o que está no resultado: { type: 'movie', id } | { type: 'notice', heading, text }
-            switching: false,
             selected: new Set(),
             mode: 'all',       // 'all' = AND (vírgula) | 'any' = OR (pipe)
             seen: new Set(),   // evita repetir o mesmo filme em sorteios consecutivos
@@ -836,16 +871,14 @@
         });
 
         // --- Renderização do resultado ---
-        function showResult(node, focusTarget, scroll = true) {
+        function showResult(node, focusTarget) {
             resultEl.replaceChildren(node);
             resultEl.hidden = false;
-            if (!scroll) return;
             if (focusTarget) focusTarget.focus({ preventScroll: true });
             resultEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
         }
 
-        function renderMovie(movie, providers, scroll = true) {
-            state.current = { type: 'movie', id: movie.id };
+        function renderMovie(movie, providers) {
             const year = movie.release_date ? movie.release_date.slice(0, 4) : '—';
             const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '—';
             const genreNames = movie.genre_ids.map((id) => state.genres.get(id)).filter(Boolean);
@@ -894,13 +927,12 @@
                 el('div', { class: 'stub' }, poster),
                 el('div', { class: 'info' }, title, facts, tags, el('p', { class: 'overview' }, movie.overview), providersBlock, reroll),
             );
-            showResult(ticket, title, scroll);
+            showResult(ticket, title);
         }
 
-        function renderNotice(headingKey, textKey, scroll = true) {
-            state.current = { type: 'notice', heading: headingKey, text: textKey };
+        function renderNotice(headingKey, textKey) {
             const notice = el('div', { class: 'notice' }, el('h2', { tabindex: '-1' }, t(headingKey)), el('p', {}, t(textKey)));
-            showResult(notice, notice.querySelector('h2'), scroll);
+            showResult(notice, notice.querySelector('h2'));
         }
 
         // --- Sorteio ---
@@ -945,7 +977,7 @@
             const read = () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
             const write = (v) => { try { localStorage.setItem(KEY, v); } catch (e) { /* sem storage: tudo bem */ } };
 
-            const audio = new Audio('halloween/musica.mp3');
+            const audio = new Audio('/halloween/musica.mp3');
             audio.loop = true;
             audio.volume = 0.22;
             audio.preload = 'none';
@@ -974,7 +1006,6 @@
                 paint();
             });
             document.querySelector('.toolbar').append(toggle);
-            addEventListener('langchange', paint);
             paint();
 
             if (wanted) {
@@ -1001,11 +1032,10 @@
             document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
             document.querySelectorAll('[data-i18n-aria]').forEach((node) => { node.setAttribute('aria-label', t(node.dataset.i18nAria)); });
             document.querySelectorAll('[data-lang-btn]').forEach((btn) => {
-                btn.setAttribute('aria-pressed', String(btn.dataset.langBtn === lang));
+                if (btn.dataset.langBtn === lang) btn.setAttribute('aria-current', 'true'); else btn.removeAttribute('aria-current');
             });
             paintSortButton();
             statusEl.textContent = t(state.status.key, ...state.status.args);
-            dispatchEvent(new Event('langchange'));
         }
 
         async function loadGenres() {
@@ -1013,48 +1043,6 @@
             state.genres.clear();
             genres.forEach((g) => state.genres.set(g.id, g.name));
         }
-
-        // Refaz o resultado atual no novo idioma (título, sinopse e gêneros vêm do TMDB).
-        async function rerenderResult() {
-            const cur = state.current;
-            if (!cur) return;
-            if (cur.type === 'notice') { renderNotice(cur.heading, cur.text, false); return; }
-            try {
-                const details = await apiFetch(`/movie/${cur.id}`);
-                const movie = { ...details, genre_ids: (details.genres || []).map((g) => g.id) };
-                renderMovie(movie, await fetchProviders(cur.id), false);
-            } catch (error) {
-                console.error('Erro ao traduzir o resultado:', error);
-            }
-        }
-
-        async function setLang(next) {
-            if (next === lang || state.switching || state.busy) return;
-            const previous = lang;
-            state.switching = true;
-            lang = next;
-            try { localStorage.setItem('movie-sorter-lang', next); } catch (e) { /* sem storage: tudo bem */ }
-            applyStatic();
-            if (state.phase === 'ready') {
-                try {
-                    await loadGenres();
-                    buildChips();
-                    updateStatus();
-                    await rerenderResult();
-                } catch (error) {
-                    console.error('Falha ao trocar o idioma:', error);
-                    lang = previous;
-                    try { localStorage.setItem('movie-sorter-lang', previous); } catch (e) { /* idem */ }
-                    applyStatic();
-                }
-            }
-            state.switching = false;
-        }
-
-        document.querySelector('.lang').addEventListener('click', (event) => {
-            const btn = event.target.closest('[data-lang-btn]');
-            if (btn) setLang(btn.dataset.langBtn);
-        });
 
         // --- Inicialização ---
         async function init() {

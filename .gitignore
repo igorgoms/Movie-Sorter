@@ -1,0 +1,14 @@
+# Segredos (a chave do TMDB, se você usar um .env local)
+.env
+.env.*
+
+# Pasta que a Vercel cria no seu computador (vercel dev / vercel link)
+.vercel
+
+# Dependências, se você tiver ou vier a ter package.json
+node_modules/
+
+# Lixo do sistema e do editor
+.DS_Store
+Thumbs.db
+.vscode/

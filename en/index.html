@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0e1a2b">
+    <meta name="color-scheme" content="dark">
+    <title>Random Movie Picker: What to Watch Tonight? | Movie Sorter</title>
+    <meta name="description" content="Free random movie picker: choose genres like horror, comedy, family or romance and get a movie with rating, synopsis and where to stream it.">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="https://movie-sorter-gules.vercel.app/en/">
+    <link rel="alternate" hreflang="pt-BR" href="https://movie-sorter-gules.vercel.app/">
+    <link rel="alternate" hreflang="en" href="https://movie-sorter-gules.vercel.app/en/">
+    <link rel="alternate" hreflang="x-default" href="https://movie-sorter-gules.vercel.app/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Movie Sorter">
+    <meta property="og:title" content="Random Movie Picker: What to Watch Tonight? | Movie Sorter">
+    <meta property="og:description" content="Pick your genres and get a random movie to watch tonight, with rating, synopsis and where to stream it. Free, for family nights, Halloween, Christmas and more.">
+    <meta property="og:url" content="https://movie-sorter-gules.vercel.app/en/">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="pt_BR">
+    <meta property="og:image" content="https://movie-sorter-gules.vercel.app/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Random Movie Picker: What to Watch Tonight? | Movie Sorter">
+    <meta name="twitter:description" content="Pick your genres and get a random movie to watch tonight, with rating, synopsis and where to stream it. Free, for family nights, Halloween, Christmas and more.">
+    <meta name="twitter:image" content="https://movie-sorter-gules.vercel.app/og-image.png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/favicon-48.png" sizes="48x48">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebApplication", "@id": "https://movie-sorter-gules.vercel.app/#app", "name": "Movie Sorter – Random Movie Picker", "url": "https://movie-sorter-gules.vercel.app/en/", "description": "Free random movie picker: choose genres and find out what to watch tonight, with rating, synopsis and where to stream it.", "applicationCategory": "EntertainmentApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "inLanguage": "en", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "BRL"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is Movie Sorter free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. No sign-up and no payment: choose your genres and pick."}}, {"@type": "Question", "name": "Where do the movies and ratings come from?", "acceptedAnswer": {"@type": "Answer", "text": "Data comes from the TMDB (The Movie Database) API. Only movies with enough votes are included, to avoid unknown or poorly documented titles."}}, {"@type": "Question", "name": "How do I know where to watch the movie?", "acceptedAnswer": {"@type": "Answer", "text": "Each result lists the subscription streaming services available in the US, with data from JustWatch. If it is on none of them, the site says so."}}, {"@type": "Question", "name": "Can I pick a horror movie for Halloween?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Select the Horror genre (and Mystery or Thriller if you like) and pick as many times as you want."}}, {"@type": "Question", "name": "Can I pick a movie to watch with the family?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Select Family, and for something lighter add Animation or Comedy."}}]}]}</script>
+    <link rel="preconnect" href="https://image.tmdb.org">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <!-- TEMA SAZONAL: HALLOWEEN (temporário).
+         Remoção: apagar este <script>, o bloco CSS "TEMA HALLOWEEN", os elementos .halloween-deco, .halloween-graveyard, .halloween-credit, o <svg> do filtro #torn e o bloco "MÚSICA HALLOWEEN" no <script>, e a pasta /halloween (inclui musica.mp3).
+         Janela automática: 15/out a 02/nov (horário local do visitante).
+         Testes: ?tema=halloween força o tema; ?tema=padrao desativa. -->
+    <script>
+        (function () {
+            var forced = new URLSearchParams(location.search).get('tema');
+            var now = new Date();
+            var month = now.getMonth(); // 0 = janeiro
+            var day = now.getDate();
+            var inWindow = (month === 9 && day >= 15) || (month === 10 && day <= 2);
+            var active = forced === 'halloween' ? true : forced === 'padrao' ? false : inWindow;
+            if (!active) return;
+            document.documentElement.setAttribute('data-theme', 'halloween');
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', '#120a1c');
+        })();
+    </script>
+    <style>
+        :root {
+            --bg: #0e1a2b;
+            --panel: #152540;
+            --line: #2b4064;
+            --text: #eef2f8;
+            --muted: #a3b3ca;
+            --amber: #ffb627;
+            --error: #ff9a9e;
+            --paper: #f4efe4;
+            --ink: #1b1626;
+            --ink-muted: #5a5266;
+            --perforation: #b9b0a0;
+            --action: #c9242b;
+            --grid-a: rgba(255, 182, 39, .13);
+            --grid-b: rgba(163, 179, 202, .09);
+            --dock-bg: rgba(14, 26, 43, .92);
+            color-scheme: dark;
+        }
+
+        /* ===== TEMA HALLOWEEN (temporário) ===== */
+        html[data-theme="halloween"] {
+            --bg: #120a1c;
+            --panel: #1e1232;
+            --line: #3d2760;
+            --text: #f4eefb;
+            --muted: #b5a6cc;
+            --amber: #ff7a1a;
+            --action: #7b2fbf;
+            --paper: #efe4cb;
+            --ink: #1a1020;
+            --ink-muted: #5b4a63;
+            --perforation: #c98a4b;
+            --grid-a: rgba(255, 122, 26, .16);
+            --grid-b: rgba(150, 90, 230, .14);
+            --dock-bg: rgba(18, 10, 28, .92);
+        }
+        html[data-theme="halloween"] h1 { text-shadow: 0 0 28px rgba(255, 122, 26, .35); }
+
+        /* Imagens em ./halloween/. Os elementos ficam ocultos fora do tema (display: none),
+           então nenhuma imagem é baixada no tema padrão. */
+        .halloween-deco, .halloween-graveyard { display: none; }
+        html[data-theme="halloween"] .halloween-deco {
+            display: block;
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        html[data-theme="halloween"] .deco { position: absolute; }
+        html[data-theme="halloween"] .deco-bats {
+            top: calc(env(safe-area-inset-top, 0px) + 8px);
+            right: 20%;
+            width: clamp(64px, 12vw, 130px);
+            aspect-ratio: 1;
+            background: url("/halloween/bats.webp") center / contain no-repeat;
+        }
+        html[data-theme="halloween"] .deco-spider {
+            --sw: 34px;
+            --sh: 64px;
+            top: 0;
+            right: 6%;
+            width: var(--sw);
+            height: var(--sh);
+            transform-origin: top center;
+            background:
+                linear-gradient(#4b2f82, #4b2f82) top center / 1px calc(var(--sh) - var(--sw) / 1.148) no-repeat,
+                url("/halloween/spider.webp") bottom center / var(--sw) auto no-repeat;
+            animation: spider-drop 3s cubic-bezier(.3, .7, .3, 1) 1s both;
+        }
+        html[data-theme="halloween"] .deco-witch {
+            top: 12vh;
+            left: 0;
+            width: clamp(110px, 22vw, 220px);
+            aspect-ratio: 500 / 265;
+            background: url("/halloween/witch.webp") center / contain no-repeat;
+            animation: witch-fly 26s linear 2s 1 both;
+        }
+        html[data-theme="halloween"] .halloween-graveyard {
+            display: block;
+            height: clamp(56px, 11vw, 150px);
+            margin-top: -16px;
+            background: url("/halloween/graveyard.webp") left bottom / auto 100% repeat-x;
+            pointer-events: none;
+            position: relative;
+            isolation: isolate;
+        }
+        /* Casa e árvore em pé sobre o cemitério (atrás dele), só quando há espaço lateral */
+        html[data-theme="halloween"] .halloween-graveyard::before,
+        html[data-theme="halloween"] .halloween-graveyard::after {
+            content: "";
+            display: none;
+            position: absolute;
+            bottom: 0;
+            z-index: -1;
+            width: clamp(110px, calc((100vw - 1000px) / 2 - 24px), 260px);
+            background-position: bottom center;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        html[data-theme="halloween"] .halloween-graveyard::before {
+            left: 1%;
+            aspect-ratio: 482 / 900;
+            background-image: url("/halloween/house.webp");
+        }
+        html[data-theme="halloween"] .halloween-graveyard::after {
+            right: 1%;
+            aspect-ratio: 724 / 900;
+            background-image: url("/halloween/tree.webp");
+        }
+        html[data-theme="halloween"] .wordmark::before {
+            content: "";
+            display: inline-block;
+            width: 1.25em;
+            height: 1.25em;
+            margin-right: .45em;
+            vertical-align: -.3em;
+            background: url("/halloween/pumpkin.webp") center / contain no-repeat;
+        }
+        html[data-theme="halloween"] .chip[data-genre-id="27"]::after {
+            content: "";
+            display: inline-block;
+            width: 1.1em;
+            height: 1.1em;
+            margin-left: .4em;
+            vertical-align: -.2em;
+            background: url("/halloween/pumpkin.webp") center / contain no-repeat;
+        }
+        html[data-theme="halloween"] .chip[data-genre-id="27"][aria-pressed="true"]::after { filter: brightness(0); }
+        /* Gato sentado sobre a linha de ações (no celular, sobre a barra fixa) */
+        html[data-theme="halloween"] .actions { position: relative; }
+        html[data-theme="halloween"] .actions::after {
+            content: "";
+            position: absolute;
+            right: 8px;
+            bottom: 100%;
+            width: 38px;
+            aspect-ratio: 207 / 300;
+            background: url("/halloween/cat.webp") bottom center / contain no-repeat;
+            pointer-events: none;
+        }
+        /* Fantasma no aviso de "nenhum filme" */
+        html[data-theme="halloween"] .notice { position: relative; padding-right: 104px; }
+        html[data-theme="halloween"] .notice::after {
+            content: "";
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            width: 64px;
+            aspect-ratio: 1;
+            transform: translateY(-50%);
+            background: url("/halloween/ghost.webp") center / contain no-repeat;
+        }
+        @keyframes spider-drop {
+            from { transform: translateY(-100%); }
+            to { transform: none; }
+        }
+        @keyframes witch-fly {
+            from { transform: translate(-100%, 0) rotate(-2deg); }
+            50% { transform: translate(calc(50vw - 50%), -14px) rotate(1deg); }
+            to { transform: translate(100vw, 6px) rotate(-2deg); }
+        }
+        @media (min-width: 681px) {
+            html[data-theme="halloween"] .deco-spider { --sw: 44px; --sh: 118px; }
+        }
+        @media (max-width: 680px) {
+            html[data-theme="halloween"] .actions::after { bottom: calc(100% + 12px); width: 32px; }
+            html[data-theme="halloween"] .notice { padding-right: 92px; }
+            html[data-theme="halloween"] .notice::after { width: 54px; right: 16px; }
+        }
+        @media (min-width: 1280px) {
+            html[data-theme="halloween"] .halloween-graveyard::before,
+            html[data-theme="halloween"] .halloween-graveyard::after { display: block; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html[data-theme="halloween"] .deco-spider { animation: none; }
+            html[data-theme="halloween"] .deco-witch { display: none; }
+        }
+        html[data-theme="halloween"] .ticket {
+            box-shadow: 0 0 0 2px var(--amber), 0 0 36px rgba(255, 122, 26, .28);
+        }
+
+        /* Ingresso rasgado e sujo: o papel é uma camada própria (.ticket-paper) com borda irregular
+           (filtro SVG #torn), manchas e ruído. O texto fica nas camadas de cima, sem distorção. */
+        .ticket-paper, .halloween-credit, .music-toggle { display: none; }
+        html[data-theme="halloween"] .ticket { background: none; box-shadow: none; overflow: visible; isolation: isolate; }
+        html[data-theme="halloween"] .ticket-paper {
+            display: block;
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            border-radius: 6px;
+            background:
+                radial-gradient(circle at 86% 18%, transparent 0 34px, rgba(112, 62, 22, .30) 36px, rgba(112, 62, 22, .10) 41px, transparent 44px),
+                radial-gradient(ellipse 120px 80px at 14% 88%, rgba(110, 70, 30, .24), transparent 70%),
+                radial-gradient(ellipse 160px 110px at 70% 96%, rgba(90, 55, 20, .22), transparent 70%),
+                radial-gradient(ellipse 90px 140px at 4% 30%, rgba(100, 60, 20, .18), transparent 70%),
+                linear-gradient(100deg, transparent 31%, rgba(60, 35, 10, .16) 31.2%, transparent 31.8%),
+                linear-gradient(0deg, transparent 58%, rgba(60, 35, 10, .12) 58.2%, transparent 58.8%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .55 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+                var(--paper);
+            box-shadow: inset 0 0 38px 6px rgba(88, 50, 14, .55), inset 0 0 6px rgba(60, 30, 5, .6);
+            filter: url(#torn) drop-shadow(0 0 16px rgba(255, 122, 26, .30));
+        }
+        html[data-theme="halloween"] .ticket::before,
+        html[data-theme="halloween"] .ticket::after { z-index: 1; }
+        html[data-theme="halloween"] .ticket::before { clip-path: inset(12px 0 0 0); }
+        html[data-theme="halloween"] .ticket::after { clip-path: inset(0 0 12px 0); }
+        html[data-theme="halloween"] .stub, html[data-theme="halloween"] .info { position: relative; }
+        html[data-theme="halloween"] .poster { filter: sepia(.18) contrast(1.05); box-shadow: 0 2px 8px rgba(40, 20, 5, .45); }
+
+        /* Música: botão discreto + crédito no rodapé, só no tema */
+        html[data-theme="halloween"] .music-toggle {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border: 1.5px solid var(--line);
+            border-radius: 50%;
+            background: transparent;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1;
+            cursor: pointer;
+            opacity: .75;
+            transition: opacity .15s, border-color .15s;
+        }
+        html[data-theme="halloween"] .music-toggle[aria-pressed="true"] { color: var(--amber); border-color: var(--amber); }
+        @media (hover: hover) { html[data-theme="halloween"] .music-toggle:hover { opacity: 1; } }
+        html[data-theme="halloween"] .music-toggle:focus-visible { opacity: 1; }
+        html[data-theme="halloween"] .halloween-credit { display: block; font-size: .72rem; opacity: .75; }
+        /* ===== FIM TEMA HALLOWEEN ===== */
+        /* Idioma: blocos estáticos com links existem nas duas línguas; o CSS esconde a outra */
+        html[lang="en"] [data-lang="pt"], html:not([lang="en"]) [data-lang="en"] { display: none; }
+        .top { position: relative; width: min(100%, 960px); margin: 0 auto; }
+        .toolbar {
+            position: absolute;
+            top: max(14px, env(safe-area-inset-top, 0px));
+            right: max(20px, env(safe-area-inset-right, 0px));
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lang { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+        .lang a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            min-height: 34px;
+            padding: 0 10px;
+            text-decoration: none;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            cursor: pointer;
+        }
+        .lang a[aria-current="true"] { background: var(--amber); color: var(--ink); }
+        @media (hover: hover) { .lang a:not([aria-current]):hover { color: var(--text); } }
+        .about { width: min(100%, 960px); margin: 0 auto; padding: 8px max(20px, env(safe-area-inset-right)) 56px max(20px, env(safe-area-inset-left)); color: var(--muted); font-size: .95rem; }
+        .about h2 { margin: 0 0 12px; color: var(--text); font: 800 clamp(1.25rem, 3vw, 1.6rem)/1.2 'Syne', sans-serif; }
+        .about h3 { margin: 28px 0 8px; color: var(--text); font: 700 1.05rem/1.3 'Syne', sans-serif; }
+        .about p, .about li { max-width: 70ch; }
+        .about ol, .about ul { margin: 0; padding-left: 1.25em; }
+        .about strong { color: var(--text); font-weight: 500; }
+        .about details { max-width: 70ch; border-bottom: 1px solid var(--line); }
+        .about summary { padding: 10px 0; color: var(--text); cursor: pointer; }
+        .about details p { margin: 0 0 12px; }
+        *, *::before, *::after { box-sizing: border-box; }
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            scroll-padding-top: calc(16px + env(safe-area-inset-top, 0px));
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            color: var(--text);
+            font: 400 1rem/1.6 'DM Sans', system-ui, sans-serif;
+        }
+        button {
+            font: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        button:active:not(:disabled) { transform: scale(.97); }
+
+        /* Fundo: grade em duas escalas à deriva, com desvanecimento nas bordas.
+           A animação usa transform (compositor) em vez de background-position.
+           224px é múltiplo de 56px, então o loop é contínuo nas duas camadas. */
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+            -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 25%, #000 25%, transparent 80%);
+            mask-image: radial-gradient(ellipse 90% 80% at 50% 25%, #000 25%, transparent 80%);
+        }
+        .bg::before {
+            content: "";
+            position: absolute;
+            inset: -224px;
+            background-image:
+                linear-gradient(var(--grid-a) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-a) 1px, transparent 1px),
+                linear-gradient(var(--grid-b) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-b) 1px, transparent 1px);
+            background-size: 224px 224px, 224px 224px, 56px 56px, 56px 56px;
+            will-change: transform;
+            animation: drift 30s linear infinite;
+        }
+        @keyframes drift {
+            to { transform: translate(224px, 224px); }
+        }
+
+        :focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+        .wordmark {
+            width: min(100%, 960px);
+            margin: 0 auto;
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+            font: 800 1.1rem/1 'Syne', sans-serif;
+            letter-spacing: 0.02em;
+        }
+        main { width: min(100%, 960px); margin: 0 auto; padding: 32px max(20px, env(safe-area-inset-right)) 64px max(20px, env(safe-area-inset-left)); flex: 1; }
+        h1 {
+            margin: 0 0 28px;
+            max-width: 18ch;
+            font: 800 clamp(2rem, 6vw, 3.6rem)/1.05 'Syne', sans-serif;
+        }
+
+        /* Seleção de gêneros */
+        .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+        .chip {
+            padding: 10px 16px;
+            border: 1.5px solid var(--line);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text);
+            font-weight: 500;
+            cursor: pointer;
+            transition: border-color .15s, background-color .15s;
+        }
+        @media (hover: hover) { .chip:hover { border-color: var(--amber); } }
+        .chip[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: var(--ink); }
+        .chip[aria-pressed="true"]::before { content: "✓ "; }
+
+        .mode { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 28px; }
+        .mode-label { color: var(--muted); font-size: .95rem; }
+        .seg { position: relative; display: inline-flex; }
+        .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+        .seg span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 6px 14px;
+            border: 1.5px solid var(--line);
+            border-radius: 8px;
+            color: var(--muted);
+        }
+        .seg input:checked + span { border-color: var(--amber); color: var(--text); background: var(--panel); }
+        .seg input:focus-visible + span { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+        .dock { margin-top: 28px; }
+        .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+        .btn-primary {
+            min-height: 48px;
+            padding: 14px 28px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--action);
+            color: #fff;
+            font: 700 1.1rem/1 'Syne', sans-serif;
+            cursor: pointer;
+        }
+        @media (hover: hover) { .btn-primary:hover:not(:disabled) { filter: brightness(1.12); } }
+        .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+        .btn-text {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 6px 8px;
+            border: 0;
+            background: none;
+            color: var(--muted);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        @media (hover: hover) { .btn-text:hover { color: var(--text); } }
+        .status { margin: 12px 0 0; min-height: 1.6em; color: var(--muted); }
+        .status.is-error { color: var(--error); }
+
+        /* Resultado: ingresso */
+        #result { margin-top: 48px; }
+        .ticket {
+            position: relative;
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            background: var(--paper);
+            color: var(--ink);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: enter .5s cubic-bezier(.2, .8, .2, 1);
+        }
+        .ticket::before, .ticket::after {
+            content: "";
+            position: absolute;
+            left: calc(260px - 12px);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--bg);
+        }
+        .ticket::before { top: -12px; }
+        .ticket::after { bottom: -12px; }
+        @keyframes enter {
+            from { opacity: 0; transform: translateY(24px) rotate(-1deg); }
+            to { opacity: 1; transform: none; }
+        }
+        .stub { padding: 16px; }
+        .poster, .poster-fallback {
+            display: block;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            border-radius: 8px;
+            background: #d9d2c2;
+        }
+        .poster { object-fit: cover; height: auto; }
+        .poster-fallback { display: grid; place-items: center; padding: 16px; text-align: center; color: var(--ink-muted); }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 28px 32px;
+            border-left: 2px dashed var(--perforation);
+        }
+        .movie-title { margin: 0; font: 800 clamp(1.5rem, 4vw, 2.2rem)/1.1 'Syne', sans-serif; }
+        .movie-title:focus { outline: none; }
+        .facts { display: flex; gap: 32px; margin: 0; }
+        .facts dt { font-size: .8rem; color: var(--ink-muted); }
+        .facts dd { margin: 0; font: 700 1.4rem/1.2 'Syne', sans-serif; }
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+        .tags li {
+            padding: 2px 12px;
+            border: 1px solid var(--perforation);
+            border-radius: 999px;
+            font-size: .85rem;
+            color: var(--ink-muted);
+        }
+        .overview { margin: 0; max-width: 62ch; line-height: 1.65; }
+        .providers h3 { margin: 0 0 10px; font-size: .9rem; font-weight: 700; }
+        .providers p { margin: 0; color: var(--ink-muted); font-size: .9rem; }
+        .logos { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+        .logos img { display: block; width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+        .btn-reroll {
+            align-self: flex-start;
+            margin-top: auto;
+            min-height: 48px;
+            padding: 12px 22px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--ink);
+            color: var(--paper);
+            font: 700 1rem/1 'Syne', sans-serif;
+            cursor: pointer;
+        }
+        @media (hover: hover) { .btn-reroll:hover { filter: brightness(1.3); } }
+
+        .notice { padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+        .notice h2 { margin: 0 0 6px; font: 700 1.3rem/1.2 'Syne', sans-serif; }
+        .notice p { margin: 0; color: var(--muted); max-width: 60ch; }
+
+        footer { border-top: 1px solid var(--line); }
+        .footer-inner { width: min(100%, 960px); margin: 0 auto; padding: 24px max(20px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); color: var(--muted); font-size: .8rem; }
+        .footer-inner p { margin: 0 0 6px; }
+        .footer-inner a { color: inherit; }
+
+        @media (max-width: 680px) {
+            /* O dock vem depois do resultado (order) para que, ao ficar fixo no rodapé
+               da viewport, nunca cubra o fim do conteúdo. */
+            main { display: flex; flex-direction: column; padding-top: 24px; }
+            h1 { margin-bottom: 20px; }
+            .chips { gap: 8px; }
+            .mode { margin-top: 20px; }
+            #result { order: 1; margin-top: 32px; }
+            .dock {
+                order: 2;
+                position: sticky;
+                bottom: 0;
+                z-index: 5;
+                margin: 20px calc(-1 * max(20px, env(safe-area-inset-right))) 0 calc(-1 * max(20px, env(safe-area-inset-left)));
+                padding: 12px max(20px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+                background: var(--dock-bg);
+                -webkit-backdrop-filter: blur(12px);
+                backdrop-filter: blur(12px);
+                border-top: 1px solid var(--line);
+            }
+            .actions { flex-wrap: nowrap; gap: 8px; }
+            .btn-primary { flex: 1; }
+            .status { margin-top: 8px; min-height: 0; font-size: .85rem; }
+            .ticket { grid-template-columns: 1fr; }
+            .ticket::before, .ticket::after { display: none; }
+            .stub { max-width: 240px; margin: 0 auto; }
+            .info { border-left: 0; border-top: 2px dashed var(--perforation); padding: 24px 20px; }
+            .btn-reroll { align-self: stretch; }
+        }
+        @media (max-width: 400px) {
+            .facts { gap: 24px; }
+            .info { padding: 20px 16px; }
+        }
+        @media (max-width: 680px) and (max-height: 520px) {
+            .dock { padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+            .btn-primary { min-height: 44px; padding-block: 10px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ticket, .bg::before { animation: none; }
+            .chip { transition: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg" aria-hidden="true"></div>
+    <div class="halloween-deco" aria-hidden="true">
+        <span class="deco deco-bats"></span>
+        <span class="deco deco-spider"></span>
+        <span class="deco deco-witch"></span>
+    </div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <filter id="torn" x="-4%" y="-6%" width="108%" height="112%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.035 0.05" numOctaves="2" seed="7" result="wave"/>
+            <feDisplacementMap in="SourceGraphic" in2="wave" scale="14" xChannelSelector="R" yChannelSelector="G" result="w"/>
+            <feTurbulence type="fractalNoise" baseFrequency="0.35" numOctaves="3" seed="2" result="grain"/>
+            <feDisplacementMap in="w" in2="grain" scale="7" xChannelSelector="G" yChannelSelector="B"/>
+        </filter>
+    </svg>
+    <div class="top">
+        <div class="wordmark">Movie Sorter</div>
+        <div class="toolbar">
+            <nav class="lang" data-i18n-aria="langLabel" aria-label="Language">
+                <a href="/" hreflang="pt-BR" lang="pt-BR" data-lang-btn="pt" aria-label="Português">PT</a>
+                <a href="/en/" hreflang="en" lang="en" data-lang-btn="en" aria-label="English">EN</a>
+            </nav>
+        </div>
+    </div>
+
+    <main>
+        <h1 data-i18n="h1">Pick the genres. We pick the movie.</h1>
+
+        <div id="genre-grid" class="chips" role="group" aria-label="Genres" data-i18n-aria="genres"></div>
+
+        <div class="mode" role="radiogroup" aria-labelledby="mode-label">
+            <span id="mode-label" class="mode-label" data-i18n="modeLabel">The movie must have</span>
+            <label class="seg"><input type="radio" name="mode" value="all" checked><span data-i18n="modeAll">All selected</span></label>
+            <label class="seg"><input type="radio" name="mode" value="any"><span data-i18n="modeAny">At least one</span></label>
+        </div>
+
+        <div class="dock">
+            <div class="actions">
+                <button id="sort-button" class="btn-primary" type="button" disabled>Loading…</button>
+                <button id="clear-button" class="btn-text" type="button" data-i18n="clear">Clear selection</button>
+            </div>
+            <p id="status" class="status" role="status">Loading genres…</p>
+        </div>
+
+        <section id="result" hidden></section>
+    </main>
+
+    <section class="about" aria-labelledby="about-title">
+        <h2 id="about-title">Random movie picker: find out what to watch tonight</h2>
+        <p>Movie Sorter is a free random movie picker. Select one or more genres — horror, comedy, family, romance, action, animation, thriller and more — and get a movie among the most popular on TMDB, with poster, rating, synopsis and the subscription streaming services that offer it in the US.</p>
+        <h3>How to pick a movie</h3>
+        <ol><li>Select the genres you feel like watching.</li><li>Choose whether the movie must have all selected genres or at least one.</li><li>Click “Pick a movie”. Not feeling it? Click “Pick another”.</li></ol>
+        <h3>A movie for every occasion</h3>
+        <ul><li><strong>Family movie night:</strong> select Family and Animation for movies all ages enjoy.</li><li><strong>Halloween:</strong> combine Horror, Mystery and Thriller. In October the site gets a Halloween theme.</li><li><strong>Christmas night:</strong> Family, Comedy and Fantasy make good picks for the holiday evening.</li><li><strong>Date night or friends:</strong> Romance, Comedy or Action to decide without arguing.</li></ul>
+        <h3>Frequently asked questions</h3>
+        <details><summary>Is Movie Sorter free?</summary><p>Yes. No sign-up and no payment: choose your genres and pick.</p></details><details><summary>Where do the movies and ratings come from?</summary><p>Data comes from the TMDB (The Movie Database) API. Only movies with enough votes are included, to avoid unknown or poorly documented titles.</p></details><details><summary>How do I know where to watch the movie?</summary><p>Each result lists the subscription streaming services available in the US, with data from JustWatch. If it is on none of them, the site says so.</p></details><details><summary>Can I pick a horror movie for Halloween?</summary><p>Yes. Select the Horror genre (and Mystery or Thriller if you like) and pick as many times as you want.</p></details><details><summary>Can I pick a movie to watch with the family?</summary><p>Yes. Select Family, and for something lighter add Animation or Comedy.</p></details>
+    </section>
+
+    <div class="halloween-graveyard" aria-hidden="true"></div>
+
+    <footer>
+        <div class="footer-inner">
+            <p data-i18n="footerCreated">Created by Igor Lucena Gomes. © 2025. All rights reserved.</p>
+            <p>
+                <span data-lang="pt">Dados de filmes: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
+                Este produto usa a API do TMDB, mas não é endossado nem certificado por ele.
+                Disponibilidade em streaming: <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</span>
+                <span data-lang="en">
+                    Movie data: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
+                    This product uses the TMDB API but is not endorsed or certified by TMDB.
+                    Streaming availability: <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.
+                </span>
+            </p>
+            <p class="halloween-credit">
+                <span data-lang="pt">Música: <a href="https://pixabay.com/users/nastelbom-48128234/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Dmitrii Spis</a> via <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Pixabay</a>.</span>
+                <span data-lang="en">Music by <a href="https://pixabay.com/users/nastelbom-48128234/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Dmitrii Spis</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Pixabay</a>.</span>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Configuração ---
+        const IMG = 'https://image.tmdb.org/t/p/';
+        const MAX_ATTEMPTS = 5;
+        const MIN_VOTES = '200'; // filtra títulos sem avaliações suficientes
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // --- Idiomas ---
+        // tmdb: parâmetro `language` do TMDB (o proxy aceita sobrescrever o padrão pt-BR).
+        // region: país usado para "onde assistir" (streaming varia por país).
+        const I18N = {
+            pt: {
+                tmdb: 'pt-BR', region: 'BR', htmlLang: 'pt-BR',
+                description: 'Escolha os gêneros e sorteie um filme para assistir hoje.',
+                h1: 'Escolha os gêneros. A gente escolhe o filme.',
+                genres: 'Gêneros', langLabel: 'Idioma',
+                modeLabel: 'O filme deve ter', modeAll: 'Todos os marcados', modeAny: 'Pelo menos um',
+                clear: 'Limpar seleção',
+                footerCreated: 'Criado por Igor Lucena Gomes. © 2025. Todos os direitos reservados.',
+                btnLoading: 'Carregando…', btnUnavailable: 'Indisponível', btnSorting: 'Sorteando…', btnSort: 'Sortear filme',
+                loadingGenres: 'Carregando gêneros…',
+                selectOne: 'Selecione pelo menos um gênero.',
+                selected: (n) => (n === 1 ? '1 gênero selecionado.' : `${n} gêneros selecionados.`),
+                selectToSort: 'Selecione pelo menos um gênero para sortear.',
+                loadFail: 'Não foi possível carregar os gêneros. Recarregue a página.',
+                year: 'Ano', rating: 'Nota TMDB',
+                posterAlt: (title) => `Pôster de ${title}`, posterMissing: 'Pôster indisponível',
+                where: 'Onde assistir no Brasil',
+                noStream: 'Não está em nenhum streaming por assinatura no Brasil.',
+                reroll: 'Sortear outro',
+                noMovieH: 'Nenhum filme encontrado',
+                noMovieP: 'Tente a opção "Pelo menos um" ou remova algum gênero.',
+                failH: 'Não foi possível sortear',
+                failP: 'A consulta ao TMDB falhou. Tente novamente em instantes.',
+                musicPause: 'Pausar música de Halloween', musicPlay: 'Tocar música de Halloween',
+            },
+            en: {
+                tmdb: 'en-US', region: 'US', htmlLang: 'en',
+                description: 'Pick your genres and get a random movie to watch tonight.',
+                h1: 'Pick the genres. We pick the movie.',
+                genres: 'Genres', langLabel: 'Language',
+                modeLabel: 'The movie must have', modeAll: 'All selected', modeAny: 'At least one',
+                clear: 'Clear selection',
+                footerCreated: 'Created by Igor Lucena Gomes. © 2025. All rights reserved.',
+                btnLoading: 'Loading…', btnUnavailable: 'Unavailable', btnSorting: 'Picking…', btnSort: 'Pick a movie',
+                loadingGenres: 'Loading genres…',
+                selectOne: 'Select at least one genre.',
+                selected: (n) => (n === 1 ? '1 genre selected.' : `${n} genres selected.`),
+                selectToSort: 'Select at least one genre to pick a movie.',
+                loadFail: 'Could not load the genres. Please reload the page.',
+                year: 'Year', rating: 'TMDB rating',
+                posterAlt: (title) => `Poster for ${title}`, posterMissing: 'Poster unavailable',
+                where: 'Where to watch in the US',
+                noStream: 'Not on any subscription streaming service in the US.',
+                reroll: 'Pick another',
+                noMovieH: 'No movie found',
+                noMovieP: 'Try the "At least one" option or remove a genre.',
+                failH: 'Could not pick a movie',
+                failP: 'The TMDB request failed. Please try again in a moment.',
+                musicPause: 'Pause Halloween music', musicPlay: 'Play Halloween music',
+            },
+        };
+        let lang = document.documentElement.lang === 'en' ? 'en' : 'pt';
+        const t = (key, ...args) => {
+            const value = I18N[lang][key];
+            return typeof value === 'function' ? value(...args) : value;
+        };
+
+        // --- DOM e estado ---
+        const $ = (id) => document.getElementById(id);
+        const chipsEl = $('genre-grid');
+        const sortBtn = $('sort-button');
+        const clearBtn = $('clear-button');
+        const statusEl = $('status');
+        const resultEl = $('result');
+
+        const state = {
+            genres: new Map(),
+            phase: 'loading',  // 'loading' | 'ready' | 'error' (texto do botão principal)
+            status: { key: 'loadingGenres', isError: false, args: [] },
+            selected: new Set(),
+            mode: 'all',       // 'all' = AND (vírgula) | 'any' = OR (pipe)
+            seen: new Set(),   // evita repetir o mesmo filme em sorteios consecutivos
+            busy: false,
+        };
+
+        // Cria elementos sem innerHTML: dados da API entram sempre como texto.
+        function el(tag, props = {}, ...children) {
+            const node = document.createElement(tag);
+            for (const [key, value] of Object.entries(props)) {
+                if (key === 'class') node.className = value;
+                else node.setAttribute(key, value);
+            }
+            node.append(...children);
+            return node;
+        }
+
+        // --- API (proxy serverless) ---
+        async function apiFetch(endpoint, params = {}) {
+            const query = new URLSearchParams({ endpoint, language: t('tmdb'), ...params });
+            const response = await fetch(`/api/tmdb?${query}`);
+            if (!response.ok) {
+                throw new Error(`Falha na API (${response.status}) em ${endpoint}`);
+            }
+            return response.json();
+        }
+
+        async function fetchProviders(movieId) {
+            try {
+                const data = await apiFetch(`/movie/${movieId}/watch/providers`);
+                return data.results?.[t('region')]?.flatrate ?? [];
+            } catch (error) {
+                console.error('Erro ao buscar provedores de streaming:', error);
+                return [];
+            }
+        }
+
+        // total_pages vem da própria consulta filtrada; usar o total do /discover sem
+        // filtro faria a maioria das páginas sorteadas ficar vazia.
+        async function findMovie() {
+            const base = {
+                with_genres: [...state.selected].join(state.mode === 'all' ? ',' : '|'),
+                sort_by: 'popularity.desc',
+                'vote_count.gte': MIN_VOTES,
+            };
+            const first = await apiFetch('/discover/movie', { ...base, page: 1 });
+            const totalPages = Math.min(first.total_pages || 0, 500);
+            if (!totalPages) return null;
+
+            const pick = (results) => {
+                const candidates = results.filter((m) => m.poster_path && m.overview && !state.seen.has(m.id));
+                return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
+            };
+
+            for (let i = 0; i < MAX_ATTEMPTS; i++) {
+                const page = 1 + Math.floor(Math.random() * totalPages);
+                const data = page === 1 ? first : await apiFetch('/discover/movie', { ...base, page });
+                const movie = pick(data.results);
+                if (movie) return movie;
+            }
+
+            // Combinação pequena: todos os resultados já saíram. Reinicia o histórico.
+            const fallback = pick(first.results);
+            if (fallback) return fallback;
+            state.seen.clear();
+            return pick(first.results);
+        }
+
+        // --- Seleção ---
+        function setStatus(key, isError = false, ...args) {
+            state.status = { key, isError, args };
+            statusEl.textContent = t(key, ...args);
+            statusEl.classList.toggle('is-error', isError);
+        }
+
+        function updateStatus() {
+            const n = state.selected.size;
+            if (n === 0) setStatus('selectOne');
+            else setStatus('selected', false, n);
+        }
+
+        function paintSortButton() {
+            const key = state.phase === 'loading' ? 'btnLoading'
+                : state.phase === 'error' ? 'btnUnavailable'
+                : state.busy ? 'btnSorting' : 'btnSort';
+            sortBtn.textContent = t(key);
+        }
+
+        function buildChips() {
+            const sorted = [...state.genres.entries()].sort((a, b) => a[1].localeCompare(b[1], lang === 'pt' ? 'pt-BR' : 'en'));
+            const nodes = sorted.map(([id, name]) => {
+                const chip = el('button', { class: 'chip', type: 'button', 'aria-pressed': String(state.selected.has(id)) }, name);
+                chip.dataset.genreId = id;
+                return chip;
+            });
+            chipsEl.replaceChildren(...nodes);
+        }
+
+        chipsEl.addEventListener('click', (event) => {
+            const chip = event.target.closest('.chip');
+            if (!chip) return;
+            const id = Number(chip.dataset.genreId);
+            const nowSelected = !state.selected.has(id);
+            if (nowSelected) state.selected.add(id); else state.selected.delete(id);
+            chip.setAttribute('aria-pressed', String(nowSelected));
+            state.seen.clear();
+            updateStatus();
+        });
+
+        document.querySelectorAll('input[name="mode"]').forEach((input) => {
+            input.addEventListener('change', () => {
+                state.mode = input.value;
+                state.seen.clear();
+            });
+        });
+
+        clearBtn.addEventListener('click', () => {
+            state.selected.clear();
+            state.seen.clear();
+            chipsEl.querySelectorAll('.chip').forEach((chip) => chip.setAttribute('aria-pressed', 'false'));
+            updateStatus();
+        });
+
+        // --- Renderização do resultado ---
+        function showResult(node, focusTarget) {
+            resultEl.replaceChildren(node);
+            resultEl.hidden = false;
+            if (focusTarget) focusTarget.focus({ preventScroll: true });
+            resultEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        }
+
+        function renderMovie(movie, providers) {
+            const year = movie.release_date ? movie.release_date.slice(0, 4) : '—';
+            const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '—';
+            const genreNames = movie.genre_ids.map((id) => state.genres.get(id)).filter(Boolean);
+
+            const poster = el('img', {
+                class: 'poster',
+                src: `${IMG}w500${movie.poster_path}`,
+                alt: t('posterAlt', movie.title),
+                width: '500',
+                height: '750',
+                loading: 'lazy',
+            });
+            poster.addEventListener('error', () => {
+                poster.replaceWith(el('div', { class: 'poster-fallback' }, 'Pôster indisponível'));
+            }, { once: true });
+
+            const title = el('h2', { class: 'movie-title', tabindex: '-1' }, movie.title);
+
+            const facts = el('dl', { class: 'facts' },
+                el('div', {}, el('dt', {}, t('year')), el('dd', {}, year)),
+                el('div', {}, el('dt', {}, t('rating')), el('dd', {}, rating)),
+            );
+
+            const tags = el('ul', { class: 'tags' }, ...genreNames.map((name) => el('li', {}, name)));
+
+            const providersBlock = el('div', { class: 'providers' }, el('h3', {}, t('where')));
+            if (providers.length) {
+                providersBlock.append(el('ul', { class: 'logos' }, ...providers.map((p) => el('li', {},
+                    el('img', {
+                        src: `${IMG}w92${p.logo_path}`,
+                        alt: p.provider_name,
+                        title: p.provider_name,
+                        width: '44',
+                        height: '44',
+                        loading: 'lazy',
+                    }),
+                ))));
+            } else {
+                providersBlock.append(el('p', {}, t('noStream')));
+            }
+
+            const reroll = el('button', { class: 'btn-reroll', type: 'button', 'data-action': 'reroll' }, t('reroll'));
+
+            const ticket = el('article', { class: 'ticket' },
+                el('span', { class: 'ticket-paper', 'aria-hidden': 'true' }),
+                el('div', { class: 'stub' }, poster),
+                el('div', { class: 'info' }, title, facts, tags, el('p', { class: 'overview' }, movie.overview), providersBlock, reroll),
+            );
+            showResult(ticket, title);
+        }
+
+        function renderNotice(headingKey, textKey) {
+            const notice = el('div', { class: 'notice' }, el('h2', { tabindex: '-1' }, t(headingKey)), el('p', {}, t(textKey)));
+            showResult(notice, notice.querySelector('h2'));
+        }
+
+        // --- Sorteio ---
+        async function sortMovie() {
+            if (state.busy) return;
+            if (state.selected.size === 0) {
+                setStatus('selectToSort', true);
+                return;
+            }
+            state.busy = true;
+            sortBtn.disabled = true;
+            paintSortButton();
+            try {
+                const movie = await findMovie();
+                if (!movie) {
+                    renderNotice('noMovieH', 'noMovieP');
+                } else {
+                    state.seen.add(movie.id);
+                    renderMovie(movie, await fetchProviders(movie.id));
+                }
+            } catch (error) {
+                console.error('Erro ao sortear filme:', error);
+                renderNotice('failH', 'failP');
+            } finally {
+                state.busy = false;
+                sortBtn.disabled = false;
+                paintSortButton();
+            }
+        }
+
+        sortBtn.addEventListener('click', sortMovie);
+        resultEl.addEventListener('click', (event) => {
+            if (event.target.closest('[data-action="reroll"]')) sortMovie();
+        });
+
+        // --- MÚSICA HALLOWEEN (temporário; só existe dentro do tema) ---
+        // Navegadores bloqueiam áudio automático: começa na primeira interação da pessoa,
+        // a menos que ela já tenha desligado (guardado em localStorage).
+        (function () {
+            if (document.documentElement.getAttribute('data-theme') !== 'halloween') return;
+            const KEY = 'movie-sorter-halloween-music';
+            const read = () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
+            const write = (v) => { try { localStorage.setItem(KEY, v); } catch (e) { /* sem storage: tudo bem */ } };
+
+            const audio = new Audio('/halloween/musica.mp3');
+            audio.loop = true;
+            audio.volume = 0.22;
+            audio.preload = 'none';
+
+            const toggle = el('button', { class: 'music-toggle', type: 'button' });
+            let wanted = read() !== 'off'; // quer tocar (ainda depende de uma interação)
+
+            function paint() {
+                const on = wanted && !audio.paused;
+                toggle.textContent = on ? '♪' : '🔇';
+                toggle.setAttribute('aria-pressed', String(on));
+                const label = t(on ? 'musicPause' : 'musicPlay');
+                toggle.setAttribute('aria-label', label);
+                toggle.title = label;
+            }
+            function play() {
+                const p = audio.play();
+                if (p) p.catch(() => {}).finally(paint);
+            }
+            audio.addEventListener('play', paint);
+            audio.addEventListener('pause', paint);
+
+            toggle.addEventListener('click', () => {
+                if (audio.paused) { wanted = true; write('on'); play(); }
+                else { wanted = false; write('off'); audio.pause(); }
+                paint();
+            });
+            document.querySelector('.toolbar').append(toggle);
+            paint();
+
+            if (wanted) {
+                const first = (event) => {
+                    if (toggle.contains(event.target)) return; // o botão decide sozinho
+                    removeEventListener('pointerdown', first, true);
+                    removeEventListener('keydown', first, true);
+                    if (wanted && audio.paused) play();
+                };
+                addEventListener('pointerdown', first, true);
+                addEventListener('keydown', first, true);
+            }
+            // Não toca com a aba em segundo plano
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) audio.pause();
+                else if (wanted && audio.currentTime > 0) play();
+            });
+        })();
+
+        // --- Idioma: textos estáticos e troca ao vivo ---
+        function applyStatic() {
+            document.documentElement.lang = t('htmlLang');
+            document.querySelector('meta[name="description"]')?.setAttribute('content', t('description'));
+            document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
+            document.querySelectorAll('[data-i18n-aria]').forEach((node) => { node.setAttribute('aria-label', t(node.dataset.i18nAria)); });
+            document.querySelectorAll('[data-lang-btn]').forEach((btn) => {
+                if (btn.dataset.langBtn === lang) btn.setAttribute('aria-current', 'true'); else btn.removeAttribute('aria-current');
+            });
+            paintSortButton();
+            statusEl.textContent = t(state.status.key, ...state.status.args);
+        }
+
+        async function loadGenres() {
+            const { genres } = await apiFetch('/genre/movie/list');
+            state.genres.clear();
+            genres.forEach((g) => state.genres.set(g.id, g.name));
+        }
+
+        // --- Inicialização ---
+        async function init() {
+            applyStatic();
+            try {
+                await loadGenres();
+                buildChips();
+                updateStatus();
+                state.phase = 'ready';
+                sortBtn.disabled = false;
+                paintSortButton();
+            } catch (error) {
+                console.error('Falha ao inicializar a aplicação:', error);
+                setStatus('loadFail', true);
+                state.phase = 'error';
+                paintSortButton();
+            }
+        }
+        init();
+    </script>
+</body>
+</html>

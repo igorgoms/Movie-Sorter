@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://movie-sorter-gules.vercel.app/sitemap.xml
