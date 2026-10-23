@@ -10,6 +10,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <script>
+        // Idioma: ?lang=pt|en > escolha salva > idioma do navegador (pt* = português, resto = inglês).
+        (function () {
+            var q = new URLSearchParams(location.search).get('lang');
+            var saved = null;
+            try { saved = localStorage.getItem('movie-sorter-lang'); } catch (e) {}
+            var nav = (navigator.language || 'pt').toLowerCase();
+            var lang = (q === 'en' || q === 'pt') ? q : (saved === 'en' || saved === 'pt') ? saved : (nav.indexOf('pt') === 0 ? 'pt' : 'en');
+            document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+        })();
+    </script>
     <!-- TEMA SAZONAL: HALLOWEEN (temporário).
          Remoção: apagar este <script>, o bloco CSS "TEMA HALLOWEEN", os elementos .halloween-deco, .halloween-graveyard, .halloween-credit, o <svg> do filtro #torn e o bloco "MÚSICA HALLOWEEN" no <script>, e a pasta /halloween (inclui musica.mp3).
          Janela automática: 15/out a 02/nov (horário local do visitante).
@@ -244,21 +255,17 @@
         html[data-theme="halloween"] .music-toggle {
             display: grid;
             place-items: center;
-            position: fixed;
-            z-index: 10;
-            top: calc(env(safe-area-inset-top, 0px) + 10px);
-            left: calc(env(safe-area-inset-left, 0px) + 10px);
-            width: 40px;
-            height: 40px;
+            width: 34px;
+            height: 34px;
             padding: 0;
-            border: 1px solid var(--line);
+            border: 1.5px solid var(--line);
             border-radius: 50%;
-            background: var(--dock-bg);
+            background: transparent;
             color: var(--muted);
-            font-size: 1.05rem;
+            font-size: 1rem;
             line-height: 1;
             cursor: pointer;
-            opacity: .65;
+            opacity: .75;
             transition: opacity .15s, border-color .15s;
         }
         html[data-theme="halloween"] .music-toggle[aria-pressed="true"] { color: var(--amber); border-color: var(--amber); }
@@ -266,6 +273,32 @@
         html[data-theme="halloween"] .music-toggle:focus-visible { opacity: 1; }
         html[data-theme="halloween"] .halloween-credit { display: block; font-size: .72rem; opacity: .75; }
         /* ===== FIM TEMA HALLOWEEN ===== */
+        /* Idioma: blocos estáticos com links existem nas duas línguas; o CSS esconde a outra */
+        html[lang="en"] [data-lang="pt"], html:not([lang="en"]) [data-lang="en"] { display: none; }
+        .top { position: relative; width: min(100%, 960px); margin: 0 auto; }
+        .toolbar {
+            position: absolute;
+            top: max(14px, env(safe-area-inset-top, 0px));
+            right: max(20px, env(safe-area-inset-right, 0px));
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lang { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+        .lang button {
+            min-width: 40px;
+            min-height: 34px;
+            padding: 0 10px;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            cursor: pointer;
+        }
+        .lang button[aria-pressed="true"] { background: var(--amber); color: var(--ink); }
+        @media (hover: hover) { .lang button[aria-pressed="false"]:hover { color: var(--text); } }
         *, *::before, *::after { box-sizing: border-box; }
         html {
             -webkit-text-size-adjust: 100%;
@@ -543,23 +576,31 @@
             <feDisplacementMap in="w" in2="grain" scale="7" xChannelSelector="G" yChannelSelector="B"/>
         </filter>
     </svg>
-    <div class="wordmark">Movie Sorter</div>
+    <div class="top">
+        <div class="wordmark">Movie Sorter</div>
+        <div class="toolbar">
+            <div class="lang" role="group" data-i18n-aria="langLabel">
+                <button type="button" data-lang-btn="pt" lang="pt-BR" aria-label="Português" aria-pressed="false">PT</button>
+                <button type="button" data-lang-btn="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
+            </div>
+        </div>
+    </div>
 
     <main>
-        <h1>Escolha os gêneros. A gente escolhe o filme.</h1>
+        <h1 data-i18n="h1">Escolha os gêneros. A gente escolhe o filme.</h1>
 
-        <div id="genre-grid" class="chips" role="group" aria-label="Gêneros"></div>
+        <div id="genre-grid" class="chips" role="group" aria-label="Gêneros" data-i18n-aria="genres"></div>
 
         <div class="mode" role="radiogroup" aria-labelledby="mode-label">
-            <span id="mode-label" class="mode-label">O filme deve ter</span>
-            <label class="seg"><input type="radio" name="mode" value="all" checked><span>Todos os marcados</span></label>
-            <label class="seg"><input type="radio" name="mode" value="any"><span>Pelo menos um</span></label>
+            <span id="mode-label" class="mode-label" data-i18n="modeLabel">O filme deve ter</span>
+            <label class="seg"><input type="radio" name="mode" value="all" checked><span data-i18n="modeAll">Todos os marcados</span></label>
+            <label class="seg"><input type="radio" name="mode" value="any"><span data-i18n="modeAny">Pelo menos um</span></label>
         </div>
 
         <div class="dock">
             <div class="actions">
                 <button id="sort-button" class="btn-primary" type="button" disabled>Carregando…</button>
-                <button id="clear-button" class="btn-text" type="button">Limpar seleção</button>
+                <button id="clear-button" class="btn-text" type="button" data-i18n="clear">Limpar seleção</button>
             </div>
             <p id="status" class="status" role="status">Carregando gêneros…</p>
         </div>
@@ -571,15 +612,20 @@
 
     <footer>
         <div class="footer-inner">
-            <p>Criado por Igor Lucena Gomes. © 2025. Todos os direitos reservados.</p>
+            <p data-i18n="footerCreated">Criado por Igor Lucena Gomes. © 2025. Todos os direitos reservados.</p>
             <p>
-                Dados de filmes: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
+                <span data-lang="pt">Dados de filmes: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
                 Este produto usa a API do TMDB, mas não é endossado nem certificado por ele.
-                Disponibilidade em streaming: <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.
+                Disponibilidade em streaming: <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.</span>
+                <span data-lang="en">
+                    Movie data: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
+                    This product uses the TMDB API but is not endorsed or certified by TMDB.
+                    Streaming availability: <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.
+                </span>
             </p>
             <p class="halloween-credit">
-                Música: <a href="https://pixabay.com/users/nastelbom-48128234/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Dmitrii Spis</a>
-                via <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Pixabay</a>.
+                <span data-lang="pt">Música: <a href="https://pixabay.com/users/nastelbom-48128234/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Dmitrii Spis</a> via <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Pixabay</a>.</span>
+                <span data-lang="en">Music by <a href="https://pixabay.com/users/nastelbom-48128234/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Dmitrii Spis</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Pixabay</a>.</span>
             </p>
         </div>
     </footer>
@@ -591,6 +637,67 @@
         const MIN_VOTES = '200'; // filtra títulos sem avaliações suficientes
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+        // --- Idiomas ---
+        // tmdb: parâmetro `language` do TMDB (o proxy aceita sobrescrever o padrão pt-BR).
+        // region: país usado para "onde assistir" (streaming varia por país).
+        const I18N = {
+            pt: {
+                tmdb: 'pt-BR', region: 'BR', htmlLang: 'pt-BR',
+                description: 'Escolha os gêneros e sorteie um filme para assistir hoje.',
+                h1: 'Escolha os gêneros. A gente escolhe o filme.',
+                genres: 'Gêneros', langLabel: 'Idioma',
+                modeLabel: 'O filme deve ter', modeAll: 'Todos os marcados', modeAny: 'Pelo menos um',
+                clear: 'Limpar seleção',
+                footerCreated: 'Criado por Igor Lucena Gomes. © 2025. Todos os direitos reservados.',
+                btnLoading: 'Carregando…', btnUnavailable: 'Indisponível', btnSorting: 'Sorteando…', btnSort: 'Sortear filme',
+                loadingGenres: 'Carregando gêneros…',
+                selectOne: 'Selecione pelo menos um gênero.',
+                selected: (n) => (n === 1 ? '1 gênero selecionado.' : `${n} gêneros selecionados.`),
+                selectToSort: 'Selecione pelo menos um gênero para sortear.',
+                loadFail: 'Não foi possível carregar os gêneros. Recarregue a página.',
+                year: 'Ano', rating: 'Nota TMDB',
+                posterAlt: (title) => `Pôster de ${title}`, posterMissing: 'Pôster indisponível',
+                where: 'Onde assistir no Brasil',
+                noStream: 'Não está em nenhum streaming por assinatura no Brasil.',
+                reroll: 'Sortear outro',
+                noMovieH: 'Nenhum filme encontrado',
+                noMovieP: 'Tente a opção "Pelo menos um" ou remova algum gênero.',
+                failH: 'Não foi possível sortear',
+                failP: 'A consulta ao TMDB falhou. Tente novamente em instantes.',
+                musicPause: 'Pausar música de Halloween', musicPlay: 'Tocar música de Halloween',
+            },
+            en: {
+                tmdb: 'en-US', region: 'US', htmlLang: 'en',
+                description: 'Pick your genres and get a random movie to watch tonight.',
+                h1: 'Pick the genres. We pick the movie.',
+                genres: 'Genres', langLabel: 'Language',
+                modeLabel: 'The movie must have', modeAll: 'All selected', modeAny: 'At least one',
+                clear: 'Clear selection',
+                footerCreated: 'Created by Igor Lucena Gomes. © 2025. All rights reserved.',
+                btnLoading: 'Loading…', btnUnavailable: 'Unavailable', btnSorting: 'Picking…', btnSort: 'Pick a movie',
+                loadingGenres: 'Loading genres…',
+                selectOne: 'Select at least one genre.',
+                selected: (n) => (n === 1 ? '1 genre selected.' : `${n} genres selected.`),
+                selectToSort: 'Select at least one genre to pick a movie.',
+                loadFail: 'Could not load the genres. Please reload the page.',
+                year: 'Year', rating: 'TMDB rating',
+                posterAlt: (title) => `Poster for ${title}`, posterMissing: 'Poster unavailable',
+                where: 'Where to watch in the US',
+                noStream: 'Not on any subscription streaming service in the US.',
+                reroll: 'Pick another',
+                noMovieH: 'No movie found',
+                noMovieP: 'Try the "At least one" option or remove a genre.',
+                failH: 'Could not pick a movie',
+                failP: 'The TMDB request failed. Please try again in a moment.',
+                musicPause: 'Pause Halloween music', musicPlay: 'Play Halloween music',
+            },
+        };
+        let lang = document.documentElement.lang === 'en' ? 'en' : 'pt';
+        const t = (key, ...args) => {
+            const value = I18N[lang][key];
+            return typeof value === 'function' ? value(...args) : value;
+        };
+
         // --- DOM e estado ---
         const $ = (id) => document.getElementById(id);
         const chipsEl = $('genre-grid');
@@ -601,6 +708,10 @@
 
         const state = {
             genres: new Map(),
+            phase: 'loading',  // 'loading' | 'ready' | 'error' (texto do botão principal)
+            status: { key: 'loadingGenres', isError: false, args: [] },
+            current: null,     // o que está no resultado: { type: 'movie', id } | { type: 'notice', heading, text }
+            switching: false,
             selected: new Set(),
             mode: 'all',       // 'all' = AND (vírgula) | 'any' = OR (pipe)
             seen: new Set(),   // evita repetir o mesmo filme em sorteios consecutivos
@@ -620,7 +731,7 @@
 
         // --- API (proxy serverless) ---
         async function apiFetch(endpoint, params = {}) {
-            const query = new URLSearchParams({ endpoint, ...params });
+            const query = new URLSearchParams({ endpoint, language: t('tmdb'), ...params });
             const response = await fetch(`/api/tmdb?${query}`);
             if (!response.ok) {
                 throw new Error(`Falha na API (${response.status}) em ${endpoint}`);
@@ -631,7 +742,7 @@
         async function fetchProviders(movieId) {
             try {
                 const data = await apiFetch(`/movie/${movieId}/watch/providers`);
-                return data.results?.BR?.flatrate ?? [];
+                return data.results?.[t('region')]?.flatrate ?? [];
             } catch (error) {
                 console.error('Erro ao buscar provedores de streaming:', error);
                 return [];
@@ -670,21 +781,29 @@
         }
 
         // --- Seleção ---
-        function setStatus(message, isError = false) {
-            statusEl.textContent = message;
+        function setStatus(key, isError = false, ...args) {
+            state.status = { key, isError, args };
+            statusEl.textContent = t(key, ...args);
             statusEl.classList.toggle('is-error', isError);
         }
 
         function updateStatus() {
             const n = state.selected.size;
-            if (n === 0) setStatus('Selecione pelo menos um gênero.');
-            else setStatus(n === 1 ? '1 gênero selecionado.' : `${n} gêneros selecionados.`);
+            if (n === 0) setStatus('selectOne');
+            else setStatus('selected', false, n);
+        }
+
+        function paintSortButton() {
+            const key = state.phase === 'loading' ? 'btnLoading'
+                : state.phase === 'error' ? 'btnUnavailable'
+                : state.busy ? 'btnSorting' : 'btnSort';
+            sortBtn.textContent = t(key);
         }
 
         function buildChips() {
-            const sorted = [...state.genres.entries()].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'));
+            const sorted = [...state.genres.entries()].sort((a, b) => a[1].localeCompare(b[1], lang === 'pt' ? 'pt-BR' : 'en'));
             const nodes = sorted.map(([id, name]) => {
-                const chip = el('button', { class: 'chip', type: 'button', 'aria-pressed': 'false' }, name);
+                const chip = el('button', { class: 'chip', type: 'button', 'aria-pressed': String(state.selected.has(id)) }, name);
                 chip.dataset.genreId = id;
                 return chip;
             });
@@ -717,14 +836,16 @@
         });
 
         // --- Renderização do resultado ---
-        function showResult(node, focusTarget) {
+        function showResult(node, focusTarget, scroll = true) {
             resultEl.replaceChildren(node);
             resultEl.hidden = false;
+            if (!scroll) return;
             if (focusTarget) focusTarget.focus({ preventScroll: true });
             resultEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
         }
 
-        function renderMovie(movie, providers) {
+        function renderMovie(movie, providers, scroll = true) {
+            state.current = { type: 'movie', id: movie.id };
             const year = movie.release_date ? movie.release_date.slice(0, 4) : '—';
             const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '—';
             const genreNames = movie.genre_ids.map((id) => state.genres.get(id)).filter(Boolean);
@@ -732,7 +853,7 @@
             const poster = el('img', {
                 class: 'poster',
                 src: `${IMG}w500${movie.poster_path}`,
-                alt: `Pôster de ${movie.title}`,
+                alt: t('posterAlt', movie.title),
                 width: '500',
                 height: '750',
                 loading: 'lazy',
@@ -744,13 +865,13 @@
             const title = el('h2', { class: 'movie-title', tabindex: '-1' }, movie.title);
 
             const facts = el('dl', { class: 'facts' },
-                el('div', {}, el('dt', {}, 'Ano'), el('dd', {}, year)),
-                el('div', {}, el('dt', {}, 'Nota TMDB'), el('dd', {}, rating)),
+                el('div', {}, el('dt', {}, t('year')), el('dd', {}, year)),
+                el('div', {}, el('dt', {}, t('rating')), el('dd', {}, rating)),
             );
 
             const tags = el('ul', { class: 'tags' }, ...genreNames.map((name) => el('li', {}, name)));
 
-            const providersBlock = el('div', { class: 'providers' }, el('h3', {}, 'Onde assistir no Brasil'));
+            const providersBlock = el('div', { class: 'providers' }, el('h3', {}, t('where')));
             if (providers.length) {
                 providersBlock.append(el('ul', { class: 'logos' }, ...providers.map((p) => el('li', {},
                     el('img', {
@@ -763,49 +884,50 @@
                     }),
                 ))));
             } else {
-                providersBlock.append(el('p', {}, 'Não está em nenhum streaming por assinatura no Brasil.'));
+                providersBlock.append(el('p', {}, t('noStream')));
             }
 
-            const reroll = el('button', { class: 'btn-reroll', type: 'button', 'data-action': 'reroll' }, 'Sortear outro');
+            const reroll = el('button', { class: 'btn-reroll', type: 'button', 'data-action': 'reroll' }, t('reroll'));
 
             const ticket = el('article', { class: 'ticket' },
                 el('span', { class: 'ticket-paper', 'aria-hidden': 'true' }),
                 el('div', { class: 'stub' }, poster),
                 el('div', { class: 'info' }, title, facts, tags, el('p', { class: 'overview' }, movie.overview), providersBlock, reroll),
             );
-            showResult(ticket, title);
+            showResult(ticket, title, scroll);
         }
 
-        function renderNotice(heading, text) {
-            const notice = el('div', { class: 'notice' }, el('h2', { tabindex: '-1' }, heading), el('p', {}, text));
-            showResult(notice, notice.querySelector('h2'));
+        function renderNotice(headingKey, textKey, scroll = true) {
+            state.current = { type: 'notice', heading: headingKey, text: textKey };
+            const notice = el('div', { class: 'notice' }, el('h2', { tabindex: '-1' }, t(headingKey)), el('p', {}, t(textKey)));
+            showResult(notice, notice.querySelector('h2'), scroll);
         }
 
         // --- Sorteio ---
         async function sortMovie() {
             if (state.busy) return;
             if (state.selected.size === 0) {
-                setStatus('Selecione pelo menos um gênero para sortear.', true);
+                setStatus('selectToSort', true);
                 return;
             }
             state.busy = true;
             sortBtn.disabled = true;
-            sortBtn.textContent = 'Sorteando…';
+            paintSortButton();
             try {
                 const movie = await findMovie();
                 if (!movie) {
-                    renderNotice('Nenhum filme encontrado', 'Tente a opção "Pelo menos um" ou remova algum gênero.');
+                    renderNotice('noMovieH', 'noMovieP');
                 } else {
                     state.seen.add(movie.id);
                     renderMovie(movie, await fetchProviders(movie.id));
                 }
             } catch (error) {
                 console.error('Erro ao sortear filme:', error);
-                renderNotice('Não foi possível sortear', 'A consulta ao TMDB falhou. Tente novamente em instantes.');
+                renderNotice('failH', 'failP');
             } finally {
                 state.busy = false;
                 sortBtn.disabled = false;
-                sortBtn.textContent = 'Sortear filme';
+                paintSortButton();
             }
         }
 
@@ -835,7 +957,7 @@
                 const on = wanted && !audio.paused;
                 toggle.textContent = on ? '♪' : '🔇';
                 toggle.setAttribute('aria-pressed', String(on));
-                const label = on ? 'Pausar música de Halloween' : 'Tocar música de Halloween';
+                const label = t(on ? 'musicPause' : 'musicPlay');
                 toggle.setAttribute('aria-label', label);
                 toggle.title = label;
             }
@@ -851,7 +973,8 @@
                 else { wanted = false; write('off'); audio.pause(); }
                 paint();
             });
-            document.body.append(toggle);
+            document.querySelector('.toolbar').append(toggle);
+            addEventListener('langchange', paint);
             paint();
 
             if (wanted) {
@@ -871,19 +994,83 @@
             });
         })();
 
+        // --- Idioma: textos estáticos e troca ao vivo ---
+        function applyStatic() {
+            document.documentElement.lang = t('htmlLang');
+            document.querySelector('meta[name="description"]')?.setAttribute('content', t('description'));
+            document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
+            document.querySelectorAll('[data-i18n-aria]').forEach((node) => { node.setAttribute('aria-label', t(node.dataset.i18nAria)); });
+            document.querySelectorAll('[data-lang-btn]').forEach((btn) => {
+                btn.setAttribute('aria-pressed', String(btn.dataset.langBtn === lang));
+            });
+            paintSortButton();
+            statusEl.textContent = t(state.status.key, ...state.status.args);
+            dispatchEvent(new Event('langchange'));
+        }
+
+        async function loadGenres() {
+            const { genres } = await apiFetch('/genre/movie/list');
+            state.genres.clear();
+            genres.forEach((g) => state.genres.set(g.id, g.name));
+        }
+
+        // Refaz o resultado atual no novo idioma (título, sinopse e gêneros vêm do TMDB).
+        async function rerenderResult() {
+            const cur = state.current;
+            if (!cur) return;
+            if (cur.type === 'notice') { renderNotice(cur.heading, cur.text, false); return; }
+            try {
+                const details = await apiFetch(`/movie/${cur.id}`);
+                const movie = { ...details, genre_ids: (details.genres || []).map((g) => g.id) };
+                renderMovie(movie, await fetchProviders(cur.id), false);
+            } catch (error) {
+                console.error('Erro ao traduzir o resultado:', error);
+            }
+        }
+
+        async function setLang(next) {
+            if (next === lang || state.switching || state.busy) return;
+            const previous = lang;
+            state.switching = true;
+            lang = next;
+            try { localStorage.setItem('movie-sorter-lang', next); } catch (e) { /* sem storage: tudo bem */ }
+            applyStatic();
+            if (state.phase === 'ready') {
+                try {
+                    await loadGenres();
+                    buildChips();
+                    updateStatus();
+                    await rerenderResult();
+                } catch (error) {
+                    console.error('Falha ao trocar o idioma:', error);
+                    lang = previous;
+                    try { localStorage.setItem('movie-sorter-lang', previous); } catch (e) { /* idem */ }
+                    applyStatic();
+                }
+            }
+            state.switching = false;
+        }
+
+        document.querySelector('.lang').addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-lang-btn]');
+            if (btn) setLang(btn.dataset.langBtn);
+        });
+
         // --- Inicialização ---
         async function init() {
+            applyStatic();
             try {
-                const { genres } = await apiFetch('/genre/movie/list', { language: 'pt-BR' });
-                genres.forEach((g) => state.genres.set(g.id, g.name));
+                await loadGenres();
                 buildChips();
                 updateStatus();
+                state.phase = 'ready';
                 sortBtn.disabled = false;
-                sortBtn.textContent = 'Sortear filme';
+                paintSortButton();
             } catch (error) {
                 console.error('Falha ao inicializar a aplicação:', error);
-                setStatus('Não foi possível carregar os gêneros. Recarregue a página.', true);
-                sortBtn.textContent = 'Indisponível';
+                setStatus('loadFail', true);
+                state.phase = 'error';
+                paintSortButton();
             }
         }
         init();
