@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <!-- TEMA SAZONAL: HALLOWEEN (temporário).
-         Remoção: apagar este <script>, o bloco CSS "TEMA HALLOWEEN", os elementos .halloween-deco e .halloween-graveyard no <body> e a pasta /halloween.
+         Remoção: apagar este <script>, o bloco CSS "TEMA HALLOWEEN", os elementos .halloween-deco, .halloween-graveyard, .halloween-credit, o <svg> do filtro #torn e o bloco "MÚSICA HALLOWEEN" no <script>, e a pasta /halloween (inclui musica.mp3).
          Janela automática: 15/out a 02/nov (horário local do visitante).
          Testes: ?tema=halloween força o tema; ?tema=padrao desativa. -->
     <script>
@@ -210,6 +210,61 @@
         html[data-theme="halloween"] .ticket {
             box-shadow: 0 0 0 2px var(--amber), 0 0 36px rgba(255, 122, 26, .28);
         }
+
+        /* Ingresso rasgado e sujo: o papel é uma camada própria (.ticket-paper) com borda irregular
+           (filtro SVG #torn), manchas e ruído. O texto fica nas camadas de cima, sem distorção. */
+        .ticket-paper, .halloween-credit, .music-toggle { display: none; }
+        html[data-theme="halloween"] .ticket { background: none; box-shadow: none; overflow: visible; isolation: isolate; }
+        html[data-theme="halloween"] .ticket-paper {
+            display: block;
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            border-radius: 6px;
+            background:
+                radial-gradient(circle at 86% 18%, transparent 0 34px, rgba(112, 62, 22, .30) 36px, rgba(112, 62, 22, .10) 41px, transparent 44px),
+                radial-gradient(ellipse 120px 80px at 14% 88%, rgba(110, 70, 30, .24), transparent 70%),
+                radial-gradient(ellipse 160px 110px at 70% 96%, rgba(90, 55, 20, .22), transparent 70%),
+                radial-gradient(ellipse 90px 140px at 4% 30%, rgba(100, 60, 20, .18), transparent 70%),
+                linear-gradient(100deg, transparent 31%, rgba(60, 35, 10, .16) 31.2%, transparent 31.8%),
+                linear-gradient(0deg, transparent 58%, rgba(60, 35, 10, .12) 58.2%, transparent 58.8%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .55 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+                var(--paper);
+            box-shadow: inset 0 0 38px 6px rgba(88, 50, 14, .55), inset 0 0 6px rgba(60, 30, 5, .6);
+            filter: url(#torn) drop-shadow(0 0 16px rgba(255, 122, 26, .30));
+        }
+        html[data-theme="halloween"] .ticket::before,
+        html[data-theme="halloween"] .ticket::after { z-index: 1; }
+        html[data-theme="halloween"] .ticket::before { clip-path: inset(12px 0 0 0); }
+        html[data-theme="halloween"] .ticket::after { clip-path: inset(0 0 12px 0); }
+        html[data-theme="halloween"] .stub, html[data-theme="halloween"] .info { position: relative; }
+        html[data-theme="halloween"] .poster { filter: sepia(.18) contrast(1.05); box-shadow: 0 2px 8px rgba(40, 20, 5, .45); }
+
+        /* Música: botão discreto + crédito no rodapé, só no tema */
+        html[data-theme="halloween"] .music-toggle {
+            display: grid;
+            place-items: center;
+            position: fixed;
+            z-index: 10;
+            top: calc(env(safe-area-inset-top, 0px) + 10px);
+            left: calc(env(safe-area-inset-left, 0px) + 10px);
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            background: var(--dock-bg);
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1;
+            cursor: pointer;
+            opacity: .65;
+            transition: opacity .15s, border-color .15s;
+        }
+        html[data-theme="halloween"] .music-toggle[aria-pressed="true"] { color: var(--amber); border-color: var(--amber); }
+        @media (hover: hover) { html[data-theme="halloween"] .music-toggle:hover { opacity: 1; } }
+        html[data-theme="halloween"] .music-toggle:focus-visible { opacity: 1; }
+        html[data-theme="halloween"] .halloween-credit { display: block; font-size: .72rem; opacity: .75; }
         /* ===== FIM TEMA HALLOWEEN ===== */
         *, *::before, *::after { box-sizing: border-box; }
         html {
@@ -480,6 +535,14 @@
         <span class="deco deco-spider"></span>
         <span class="deco deco-witch"></span>
     </div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <filter id="torn" x="-4%" y="-6%" width="108%" height="112%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.035 0.05" numOctaves="2" seed="7" result="wave"/>
+            <feDisplacementMap in="SourceGraphic" in2="wave" scale="14" xChannelSelector="R" yChannelSelector="G" result="w"/>
+            <feTurbulence type="fractalNoise" baseFrequency="0.35" numOctaves="3" seed="2" result="grain"/>
+            <feDisplacementMap in="w" in2="grain" scale="7" xChannelSelector="G" yChannelSelector="B"/>
+        </filter>
+    </svg>
     <div class="wordmark">Movie Sorter</div>
 
     <main>
@@ -508,11 +571,15 @@
 
     <footer>
         <div class="footer-inner">
-            <p>Criado por Igor Lucena Gomes. © 2026. Todos os direitos reservados.</p>
+            <p>Criado por Igor Lucena Gomes. © 2025. Todos os direitos reservados.</p>
             <p>
                 Dados de filmes: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
                 Este produto usa a API do TMDB, mas não é endossado nem certificado por ele.
                 Disponibilidade em streaming: <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>.
+            </p>
+            <p class="halloween-credit">
+                Música: <a href="https://pixabay.com/users/nastelbom-48128234/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Dmitrii Spis</a>
+                via <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=621493" target="_blank" rel="noopener">Pixabay</a>.
             </p>
         </div>
     </footer>
@@ -702,6 +769,7 @@
             const reroll = el('button', { class: 'btn-reroll', type: 'button', 'data-action': 'reroll' }, 'Sortear outro');
 
             const ticket = el('article', { class: 'ticket' },
+                el('span', { class: 'ticket-paper', 'aria-hidden': 'true' }),
                 el('div', { class: 'stub' }, poster),
                 el('div', { class: 'info' }, title, facts, tags, el('p', { class: 'overview' }, movie.overview), providersBlock, reroll),
             );
@@ -745,6 +813,63 @@
         resultEl.addEventListener('click', (event) => {
             if (event.target.closest('[data-action="reroll"]')) sortMovie();
         });
+
+        // --- MÚSICA HALLOWEEN (temporário; só existe dentro do tema) ---
+        // Navegadores bloqueiam áudio automático: começa na primeira interação da pessoa,
+        // a menos que ela já tenha desligado (guardado em localStorage).
+        (function () {
+            if (document.documentElement.getAttribute('data-theme') !== 'halloween') return;
+            const KEY = 'movie-sorter-halloween-music';
+            const read = () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
+            const write = (v) => { try { localStorage.setItem(KEY, v); } catch (e) { /* sem storage: tudo bem */ } };
+
+            const audio = new Audio('halloween/musica.mp3');
+            audio.loop = true;
+            audio.volume = 0.22;
+            audio.preload = 'none';
+
+            const toggle = el('button', { class: 'music-toggle', type: 'button' });
+            let wanted = read() !== 'off'; // quer tocar (ainda depende de uma interação)
+
+            function paint() {
+                const on = wanted && !audio.paused;
+                toggle.textContent = on ? '♪' : '🔇';
+                toggle.setAttribute('aria-pressed', String(on));
+                const label = on ? 'Pausar música de Halloween' : 'Tocar música de Halloween';
+                toggle.setAttribute('aria-label', label);
+                toggle.title = label;
+            }
+            function play() {
+                const p = audio.play();
+                if (p) p.catch(() => {}).finally(paint);
+            }
+            audio.addEventListener('play', paint);
+            audio.addEventListener('pause', paint);
+
+            toggle.addEventListener('click', () => {
+                if (audio.paused) { wanted = true; write('on'); play(); }
+                else { wanted = false; write('off'); audio.pause(); }
+                paint();
+            });
+            document.body.append(toggle);
+            paint();
+
+            if (wanted) {
+                const first = (event) => {
+                    if (toggle.contains(event.target)) return; // o botão decide sozinho
+                    removeEventListener('pointerdown', first, true);
+                    removeEventListener('keydown', first, true);
+                    if (wanted && audio.paused) play();
+                };
+                addEventListener('pointerdown', first, true);
+                addEventListener('keydown', first, true);
+            }
+            // Não toca com a aba em segundo plano
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) audio.pause();
+                else if (wanted && audio.currentTime > 0) play();
+            });
+        })();
 
         // --- Inicialização ---
         async function init() {
